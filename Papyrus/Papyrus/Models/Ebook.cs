@@ -22,6 +22,7 @@ namespace Papyrus
 
             ContentLocation = await this.GetContentLocationAsync();
             Metadata = await this.GetMetadataAsync();
+            TableOfContents = await this.GetTableOfContentsAsync();
         }
 
         #region ContentLocation
@@ -43,5 +44,12 @@ namespace Papyrus
         public string RootPath => _rootFolder.Path;
 
         #endregion RootPath
+
+        #region TableOfContents
+
+        private TableOfContents _tableOfContents = default(TableOfContents);
+        public TableOfContents TableOfContents { get => _tableOfContents; set => Set(ref _tableOfContents, value); }
+
+        #endregion TableOfContents
     }
 }

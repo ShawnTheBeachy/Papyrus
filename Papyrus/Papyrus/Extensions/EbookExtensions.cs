@@ -84,6 +84,59 @@ namespace Papyrus
             return metadata;
         }
 
+        public static async Task<TableOfContents> GetTableOfContentsAsync(this EBook ebook)
+        {
+            var relativeLocation = await ebook.GetTableOfContentsLocationAsync();
+            var tocFile = await ebook._rootFolder.GetFileFromPathAsync(Path.Combine(Path.GetDirectoryName(ebook.ContentLocation), relativeLocation));
+            var xml = await FileIO.ReadTextAsync(tocFile);
+            var doc = XDocument.Parse(xml);
+            var ns = doc.Root.GetDefaultNamespace();
+
+            var tableOfContents = new TableOfContents
+            {
+                Title = doc.Element(ns + "ncx").Element(ns + "docTitle").Element(ns + "text").Value
+            };
+
+            var navMapNode = doc.Element(ns + "ncx").Element(ns + "navMap");
+            var navPointNodes = navMapNode.Elements(ns + "navPoint").ToList();
+
+            foreach (var navPointNode in navPointNodes)
+            {
+                var navPoint = new NavPoint
+                {
+                    ContentPath = navPointNode.Element(ns + "content").Attribute("src").Value,
+                    Id = navPointNode.Attribute("id").Value,
+                    PlayOrder = int.Parse(navPointNode.Attribute("playOrder").Value),
+                    Text = navPointNode.Element(ns + "navLabel").Element(ns + "text").Value
+                };
+
+                tableOfContents.Items.Add(navPoint);
+            }
+
+            return tableOfContents;
+        }
+
+        /// <summary>
+        /// Gets the relative location of the toc.ncx file for this EBook.
+        /// </summary>
+        /// <param name="ebook"></param>
+        /// <returns></returns>
+        public static async Task<string> GetTableOfContentsLocationAsync(this EBook ebook)
+        {
+            XElement GetTocNode(string xml)
+            {
+                var doc = XDocument.Parse(xml);
+                var ns = doc.Root.GetDefaultNamespace();
+                var node = doc.Element(ns + "package").Element(ns + "manifest").Elements(ns + "item").FirstOrDefault(a => a.Attribute("id").Value == "ncx");
+                return node;
+            }
+
+            var contentFile = await ebook._rootFolder.GetFileFromPathAsync(ebook.ContentLocation);
+            var contentXml = await FileIO.ReadTextAsync(contentFile);
+            var tocNode = GetTocNode(contentXml);
+            return tocNode.Attribute("href").Value;
+        }
+
         /// <summary>
         /// Verifies that the EBook has a valid mimetype file.
         /// </summary>

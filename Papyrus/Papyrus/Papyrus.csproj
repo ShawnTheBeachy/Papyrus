@@ -111,6 +111,8 @@
     <Compile Include="Extensions\StorageExtensions.cs" />
     <Compile Include="Models\EBook.cs" />
     <Compile Include="Models\Metadata.cs" />
+    <Compile Include="Models\NavPoint.cs" />
+    <Compile Include="Models\TableOfContents.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Papyrus.rd.xml" />
   </ItemGroup>
