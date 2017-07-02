@@ -21,6 +21,7 @@ namespace Papyrus
                 throw new Exception("Invalid mimetype.");
 
             ContentLocation = await this.GetContentLocationAsync();
+            Metadata = await this.GetMetadataAsync();
         }
 
         #region ContentLocation
@@ -30,17 +31,17 @@ namespace Papyrus
 
         #endregion ContentLocation
 
+        #region Metadata
+
+        private Metadata _metadata = default(Metadata);
+        public Metadata Metadata { get => _metadata; set => Set(ref _metadata, value); }
+
+        #endregion Metadata
+
         #region RootPath
 
         public string RootPath => _rootFolder.Path;
 
         #endregion RootPath
-
-        #region Title
-
-        private string _title = default(string);
-        public string Title { get => _title; set => Set(ref _title, value); }
-
-        #endregion Title
     }
 }

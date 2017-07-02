@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Diagnostics;
 using System.IO;
 using Windows.Storage.Pickers;
@@ -40,9 +41,9 @@ namespace Papyrus.Demo
 
             EBook = new EBook(folder);
             await EBook.InitializeAsync();
-            Debug.WriteLine($"Valid mimetype: {await EBook.VerifyMimetypeAsync()}");
             Debug.WriteLine($"Content file location (relative): {EBook.ContentLocation}");
             Debug.WriteLine($"Content file location (absolute): {Path.Combine(EBook.RootPath, EBook.ContentLocation)}");
+            Debug.WriteLine($"Metadata: {JsonConvert.SerializeObject(EBook.Metadata, Formatting.Indented)}");
         }
     }
 }
