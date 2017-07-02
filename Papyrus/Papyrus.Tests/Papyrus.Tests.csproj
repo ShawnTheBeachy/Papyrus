@@ -99,7 +99,6 @@
     <Compile Include="UnitTestApp.xaml.cs">
       <DependentUpon>UnitTestApp.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UnitTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="UnitTestApp.xaml">
@@ -125,14 +124,20 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
-      <Version>5.2.3</Version>
+      <Version>5.3.3</Version>
     </PackageReference>
-    <PackageReference Include="MSTest.TestAdapter">
-      <Version>1.1.11</Version>
+    <PackageReference Include="xunit">
+      <Version>2.2.0</Version>
     </PackageReference>
-    <PackageReference Include="MSTest.TestFramework">
-      <Version>1.1.11</Version>
+    <PackageReference Include="xunit.runner.visualstudio">
+      <Version>2.2.0</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Papyrus\Papyrus.csproj">
+      <Project>{c1f475d6-dad4-4738-961b-12c42c14d90e}</Project>
+      <Name>Papyrus</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
