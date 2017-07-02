@@ -96,7 +96,7 @@ namespace Papyrus
         /// Recommended best practice is to use an encoding scheme, such as the W3CDTF profile of ISO 8601 [W3CDTF].
         /// http://purl.org/dc/terms/date
         /// </summary>
-        [JsonProperty("creator")]
+        [JsonProperty("date")]
         public DateTime Date { get => _date; set => Set(ref _date, value); }
 
         #endregion Date

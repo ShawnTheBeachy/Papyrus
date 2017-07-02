@@ -65,7 +65,7 @@ namespace Papyrus
             var dcNamespace = metadataNode.GetNamespaceOfPrefix("dc");
 
             string GetValue(string node) =>
-                metadataNode.Element(dcNamespace + node).Value;
+                metadataNode.Element(dcNamespace + node)?.Value;
             
             var metadata = new Metadata
             {
@@ -75,7 +75,8 @@ namespace Papyrus
                 Contributor = GetValue("contributor"),
                 Created = GetValue("created") == null ? default(DateTime) : DateTime.Parse(GetValue("created")),
                 Creator = GetValue("creator"),
-                Date = DateTime.Parse(GetValue("date")),
+                Date = GetValue("date") == null ? default(DateTime) : DateTime.Parse(GetValue("date")),
+                Description = GetValue("description"),
                 Language = GetValue("language"),
                 Title = GetValue("title")
             };
