@@ -1,14 +1,16 @@
 ﻿using Windows.Storage;
 
-namespace Papyrus.Models
+namespace Papyrus
 {
     public class EBook : BaseNotify
     {
+        internal StorageFolder _rootFolder;
+
         public EBook() { }
 
         public EBook(StorageFolder folder)
         {
-
+            _rootFolder = folder;
         }
 
         #region Title
