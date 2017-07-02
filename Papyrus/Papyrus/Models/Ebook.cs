@@ -1,4 +1,6 @@
-﻿using Windows.Storage;
+﻿using System;
+using System.Threading.Tasks;
+using Windows.Storage;
 
 namespace Papyrus
 {
@@ -12,6 +14,21 @@ namespace Papyrus
         {
             _rootFolder = folder;
         }
+
+        public async Task InitializeAsync()
+        {
+            if (await this.VerifyMimetypeAsync() == false)
+                throw new Exception("Invalid mimetype.");
+
+            ContentLocation = await this.GetContentLocationAsync();
+        }
+
+        #region ContentLocation
+
+        private string _contentLocation = default(string);
+        public string ContentLocation { get => _contentLocation; set => Set(ref _contentLocation, value); }
+
+        #endregion ContentLocation
 
         #region RootPath
 

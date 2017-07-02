@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using Windows.Storage.Pickers;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -38,7 +39,10 @@ namespace Papyrus.Demo
                 return;
 
             EBook = new EBook(folder);
+            await EBook.InitializeAsync();
             Debug.WriteLine($"Valid mimetype: {await EBook.VerifyMimetypeAsync()}");
+            Debug.WriteLine($"Content file location (relative): {EBook.ContentLocation}");
+            Debug.WriteLine($"Content file location (absolute): {Path.Combine(EBook.RootPath, EBook.ContentLocation)}");
         }
     }
 }
