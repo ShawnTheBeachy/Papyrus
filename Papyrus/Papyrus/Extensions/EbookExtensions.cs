@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Windows.Storage;
+using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
 
 namespace Papyrus
 {
@@ -43,6 +45,24 @@ namespace Papyrus
                 throw new Exception("Invalid media type on rootfile node.");
 
             return rootFileNode.Attribute("full-path")?.Value;
+        }
+
+        /// <summary>
+        /// Gets a bitmap image of the cover.
+        /// </summary>
+        /// <param name="ebook"></param>
+        /// <returns></returns>
+        public static async Task<ImageSource> GetCoverAsync(this EBook ebook)
+        {
+            if (!ebook.Manifest.ContainsKey("cover"))
+                return null;
+
+            var relativeLocation = ebook.Manifest["cover"].ContentLocation;
+            var coverFile = await ebook._rootFolder.GetFileFromPathAsync(Path.Combine(Path.GetDirectoryName(ebook.ContentLocation), relativeLocation));
+            var stream = await coverFile.OpenReadAsync();
+            var bitmap = new BitmapImage();
+            bitmap.SetSource(stream);
+            return bitmap;
         }
 
         /// <summary>

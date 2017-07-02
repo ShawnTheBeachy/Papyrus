@@ -38,6 +38,11 @@
                 </ListView.ItemTemplate>
             </ListView>
         </RelativePanel>
+        <Image x:Name="CoverImage"
+               Height="300"
+               RelativePanel.Below="CurrentFolderTextBlock"
+               RelativePanel.RightOf="TableOfContentsPanel"
+               Source="{x:Bind EBook.Cover, Mode=OneWay}" />
     </RelativePanel>
 
     <Page.BottomAppBar>

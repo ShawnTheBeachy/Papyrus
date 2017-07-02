@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage;
+using Windows.UI.Xaml.Media;
 
 namespace Papyrus
 {
@@ -29,6 +30,7 @@ namespace Papyrus
                 Manifest.Add(item.Id, item);
 
             TableOfContents = await this.GetTableOfContentsAsync();
+            Cover = await this.GetCoverAsync();
         }
 
         #region ContentLocation
@@ -37,6 +39,13 @@ namespace Papyrus
         public string ContentLocation { get => _contentLocation; set => Set(ref _contentLocation, value); }
 
         #endregion ContentLocation
+
+        #region Cover
+
+        private ImageSource _cover = default(ImageSource);
+        public ImageSource Cover { get => _cover; set => Set(ref _cover, value); }
+
+        #endregion Cover
 
         #region Manifest
 
