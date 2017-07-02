@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -98,20 +99,33 @@ namespace Papyrus
             };
 
             var navMapNode = doc.Element(ns + "ncx").Element(ns + "navMap");
-            var navPointNodes = navMapNode.Elements(ns + "navPoint").ToList();
 
-            foreach (var navPointNode in navPointNodes)
+            IEnumerable<NavPoint> ParseNavPoints(XElement node)
             {
-                var navPoint = new NavPoint
-                {
-                    ContentPath = navPointNode.Element(ns + "content").Attribute("src").Value,
-                    Id = navPointNode.Attribute("id").Value,
-                    PlayOrder = int.Parse(navPointNode.Attribute("playOrder").Value),
-                    Text = navPointNode.Element(ns + "navLabel").Element(ns + "text").Value
-                };
+                var navPoints = new List<NavPoint>();
+                var navPointNodes = node.Elements(ns + "navPoint").ToList();
 
-                tableOfContents.Items.Add(navPoint);
+                foreach (var navPointNode in navPointNodes)
+                {
+                    var navPoint = new NavPoint
+                    {
+                        ContentPath = navPointNode.Element(ns + "content").Attribute("src").Value,
+                        Id = navPointNode.Attribute("id").Value,
+                        PlayOrder = int.Parse(navPointNode.Attribute("playOrder").Value),
+                        Text = navPointNode.Element(ns + "navLabel").Element(ns + "text").Value
+                    };
+
+                    foreach (var subNavPoint in ParseNavPoints(navPointNode).ToList())
+                        navPoint.Items.Add(subNavPoint);
+
+                    navPoints.Add(navPoint);
+                }
+
+                return navPoints;
             }
+
+            foreach (var navPoint in ParseNavPoints(navMapNode).ToList())
+                tableOfContents.Items.Add(navPoint);
 
             return tableOfContents;
         }

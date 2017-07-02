@@ -1,4 +1,6 @@
-﻿namespace Papyrus
+﻿using System.Collections.ObjectModel;
+
+namespace Papyrus
 {
     public class NavPoint : BaseNotify
     {
@@ -15,6 +17,13 @@
         public string Id { get => _id; set => Set(ref _id, value); }
 
         #endregion Id
+
+        #region Items
+
+        private ObservableCollection<NavPoint> _items = new ObservableCollection<NavPoint>();
+        public ObservableCollection<NavPoint> Items { get => _items; }
+
+        #endregion Items
 
         #region PlayOrder
 
