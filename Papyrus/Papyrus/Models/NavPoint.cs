@@ -1,9 +1,12 @@
 ﻿using System.Collections.ObjectModel;
+using Windows.Storage;
 
 namespace Papyrus
 {
     public class NavPoint : BaseNotify
     {
+        internal StorageFolder _rootFolder;
+
         #region ContentPath
 
         private string _contentPath = default(string);

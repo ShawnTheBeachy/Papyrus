@@ -45,5 +45,12 @@ namespace Papyrus.Demo
             Debug.WriteLine($"Content file location (absolute): {Path.Combine(EBook.RootPath, EBook.ContentLocation)}");
             Debug.WriteLine($"Metadata: {JsonConvert.SerializeObject(EBook.Metadata, Formatting.Indented)}");
         }
+
+        private async void NavPointsListView_ItemClick(object sender, ItemClickEventArgs e)
+        {
+            var navPoint = e.ClickedItem as NavPoint;
+            var contents = await navPoint.GetContentsAsync();
+            ContentWebView.NavigateToString(contents);
+        }
     }
 }

@@ -169,6 +169,7 @@ namespace Papyrus
                         ContentPath = navPointNode.Element(ns + "content").Attribute("src").Value,
                         Id = navPointNode.Attribute("id").Value,
                         PlayOrder = int.Parse(navPointNode.Attribute("playOrder").Value),
+                        _rootFolder = ebook._rootFolder,
                         Text = navPointNode.Element(ns + "navLabel").Element(ns + "text").Value
                     };
 

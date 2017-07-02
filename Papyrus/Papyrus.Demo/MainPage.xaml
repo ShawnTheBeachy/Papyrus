@@ -25,6 +25,7 @@
                        Text="{x:Bind EBook.TableOfContents.Title, Mode=OneWay}" />
             <ListView x:Name="NavPointsListView"
                       IsItemClickEnabled="True"
+                      ItemClick="NavPointsListView_ItemClick"
                       ItemsSource="{x:Bind EBook.TableOfContents.FlatItems, Mode=OneWay}"
                       MinWidth="300"
                       RelativePanel.AlignLeftWithPanel="True"
@@ -43,6 +44,11 @@
                RelativePanel.Below="CurrentFolderTextBlock"
                RelativePanel.RightOf="TableOfContentsPanel"
                Source="{x:Bind EBook.Cover, Mode=OneWay}" />
+        <WebView x:Name="ContentWebView"
+                 RelativePanel.AlignBottomWithPanel="True"
+                 RelativePanel.AlignRightWithPanel="True"
+                 RelativePanel.Below="CoverImage"
+                 RelativePanel.RightOf="TableOfContentsPanel" />
     </RelativePanel>
 
     <Page.BottomAppBar>
