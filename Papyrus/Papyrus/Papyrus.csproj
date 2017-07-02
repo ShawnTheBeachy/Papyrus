@@ -107,7 +107,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BaseNotify.cs" />
-    <Compile Include="Models\Ebook.cs" />
+    <Compile Include="Extensions\EBookExtensions.cs" />
+    <Compile Include="Models\EBook.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Papyrus.rd.xml" />
   </ItemGroup>
@@ -116,6 +117,7 @@
       <Version>5.2.3</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
