@@ -108,6 +108,7 @@
   <ItemGroup>
     <Compile Include="BaseNotify.cs" />
     <Compile Include="Extensions\EBookExtensions.cs" />
+    <Compile Include="Extensions\StorageExtensions.cs" />
     <Compile Include="Models\EBook.cs" />
     <Compile Include="Models\Metadata.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -116,6 +117,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>5.2.3</Version>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>10.0.3</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup />

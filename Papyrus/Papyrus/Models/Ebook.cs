@@ -21,6 +21,7 @@ namespace Papyrus
                 throw new Exception("Invalid mimetype.");
 
             ContentLocation = await this.GetContentLocationAsync();
+            Metadata = await this.GetMetadataAsync();
         }
 
         #region ContentLocation
