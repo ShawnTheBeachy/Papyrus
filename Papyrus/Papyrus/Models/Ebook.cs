@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage;
 
@@ -22,6 +24,10 @@ namespace Papyrus
 
             ContentLocation = await this.GetContentLocationAsync();
             Metadata = await this.GetMetadataAsync();
+
+            foreach (var item in (await this.GetManifestAsync()).ToList())
+                Manifest.Add(item.Id, item);
+
             TableOfContents = await this.GetTableOfContentsAsync();
         }
 
@@ -31,6 +37,13 @@ namespace Papyrus
         public string ContentLocation { get => _contentLocation; set => Set(ref _contentLocation, value); }
 
         #endregion ContentLocation
+
+        #region Manifest
+
+        private Dictionary<string, ManifestItem> _manifest = new Dictionary<string, ManifestItem>();
+        public Dictionary<string, ManifestItem> Manifest { get => _manifest; }
+
+        #endregion Manifest
 
         #region Metadata
 

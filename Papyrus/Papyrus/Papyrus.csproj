@@ -110,6 +110,7 @@
     <Compile Include="Extensions\EBookExtensions.cs" />
     <Compile Include="Extensions\StorageExtensions.cs" />
     <Compile Include="Models\EBook.cs" />
+    <Compile Include="Models\ManifestItem.cs" />
     <Compile Include="Models\Metadata.cs" />
     <Compile Include="Models\NavPoint.cs" />
     <Compile Include="Models\TableOfContents.cs" />

@@ -46,6 +46,38 @@ namespace Papyrus
         }
 
         /// <summary>
+        /// Gets a list of ManifestItems for an EBook.
+        /// </summary>
+        /// <param name="ebook"></param>
+        /// <returns></returns>
+        public static async Task<IEnumerable<ManifestItem>> GetManifestAsync(this EBook ebook)
+        {
+            var items = new List<ManifestItem>();
+
+            IEnumerable<XElement> GetManifestItemNodes(string xml)
+            {
+                var doc = XDocument.Parse(xml);
+                var ns = doc.Root.GetDefaultNamespace();
+                var node = doc.Element(ns + "package").Element(ns + "manifest");
+                var itemNodes = node.Elements(ns + "item");
+                return itemNodes;
+            }
+
+            var contentFile = await ebook._rootFolder.GetFileFromPathAsync(ebook.ContentLocation);
+            var contentXml = await FileIO.ReadTextAsync(contentFile);
+
+            foreach (var itemNode in GetManifestItemNodes(contentXml).ToList())
+                items.Add(new ManifestItem
+                {
+                    ContentLocation = itemNode.Attribute("href").Value,
+                    Id = itemNode.Attribute("id").Value,
+                    MediaType = itemNode.Attribute("media-type").Value
+                });
+
+            return items;
+        }
+
+        /// <summary>
         /// Gets metadata from an EBook.
         /// </summary>
         /// <param name="ebook">The EBook for which to get metadata.</param>
@@ -84,10 +116,15 @@ namespace Papyrus
 
             return metadata;
         }
-
+        
+        /// <summary>
+        /// Gets the table of contents for an EBook.
+        /// </summary>
+        /// <param name="ebook"></param>
+        /// <returns></returns>
         public static async Task<TableOfContents> GetTableOfContentsAsync(this EBook ebook)
         {
-            var relativeLocation = await ebook.GetTableOfContentsLocationAsync();
+            var relativeLocation = ebook.Manifest["ncx"].ContentLocation;
             var tocFile = await ebook._rootFolder.GetFileFromPathAsync(Path.Combine(Path.GetDirectoryName(ebook.ContentLocation), relativeLocation));
             var xml = await FileIO.ReadTextAsync(tocFile);
             var doc = XDocument.Parse(xml);
@@ -129,28 +166,7 @@ namespace Papyrus
 
             return tableOfContents;
         }
-
-        /// <summary>
-        /// Gets the relative location of the toc.ncx file for this EBook.
-        /// </summary>
-        /// <param name="ebook"></param>
-        /// <returns></returns>
-        public static async Task<string> GetTableOfContentsLocationAsync(this EBook ebook)
-        {
-            XElement GetTocNode(string xml)
-            {
-                var doc = XDocument.Parse(xml);
-                var ns = doc.Root.GetDefaultNamespace();
-                var node = doc.Element(ns + "package").Element(ns + "manifest").Elements(ns + "item").FirstOrDefault(a => a.Attribute("id").Value == "ncx");
-                return node;
-            }
-
-            var contentFile = await ebook._rootFolder.GetFileFromPathAsync(ebook.ContentLocation);
-            var contentXml = await FileIO.ReadTextAsync(contentFile);
-            var tocNode = GetTocNode(contentXml);
-            return tocNode.Attribute("href").Value;
-        }
-
+        
         /// <summary>
         /// Verifies that the EBook has a valid mimetype file.
         /// </summary>
