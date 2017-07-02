@@ -109,6 +109,7 @@
     <Compile Include="BaseNotify.cs" />
     <Compile Include="Extensions\EBookExtensions.cs" />
     <Compile Include="Models\EBook.cs" />
+    <Compile Include="Models\Metadata.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Papyrus.rd.xml" />
   </ItemGroup>

@@ -8,6 +8,11 @@ namespace Papyrus
 {
     public static class EBookExtensions
     {
+        /// <summary>
+        /// Gets the location of the content.opf file.
+        /// </summary>
+        /// <param name="ebook">The EBook for which to get the content location.</param>
+        /// <returns>A string location.</returns>
         public static async Task<string> GetContentLocationAsync(this EBook ebook)
         {
             async Task<string> GetContentXmlAsync()
