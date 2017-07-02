@@ -60,6 +60,18 @@ namespace Papyrus
 
         #endregion Contributor
 
+        #region Created
+
+        private DateTime _created = default(DateTime);
+        /// <summary>
+        /// Date of creation of the resource.
+        /// http://purl.org/dc/terms/created
+        /// </summary>
+        [JsonProperty("created")]
+        public DateTime Created { get => _created; set => Set(ref _created, value); }
+
+        #endregion Created
+
         #region Creator
 
         private string _creator = default(string);
@@ -73,6 +85,36 @@ namespace Papyrus
         public string Creator { get => _creator; set => Set(ref _creator, value); }
 
         #endregion Creator
+
+        #region Date
+
+        private DateTime _date = default(DateTime);
+        /// <summary>
+        /// Term name: "date".
+        /// A point or period of time associated with an event in the lifecycle of the resource.
+        /// Date may be used to express temporal information at any level of granularity.
+        /// Recommended best practice is to use an encoding scheme, such as the W3CDTF profile of ISO 8601 [W3CDTF].
+        /// http://purl.org/dc/terms/date
+        /// </summary>
+        [JsonProperty("creator")]
+        public DateTime Date { get => _date; set => Set(ref _date, value); }
+
+        #endregion Date
+
+        #region Description
+
+        private string _description = default(string);
+        /// <summary>
+        /// Term name: "description".
+        /// An account of the resource.
+        /// Description may include but is not limited to: an abstract, a table of contents, 
+        /// a graphical representation, or a free-text account of the resource.
+        /// http://purl.org/dc/terms/description
+        /// </summary>
+        [JsonProperty("description")]
+        public string Description { get => _description; set => Set(ref _description, value); }
+
+        #endregion Description
 
         #region Language
 

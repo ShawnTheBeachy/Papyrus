@@ -71,9 +71,11 @@ namespace Papyrus
             {
                 AlternativeTitle = GetValue("alternative"),
                 Audience = GetValue("audience"),
-                Available = DateTime.Parse(GetValue("available")),
+                Available = GetValue("available") == null ? default(DateTime) : DateTime.Parse(GetValue("available")),
                 Contributor = GetValue("contributor"),
+                Created = GetValue("created") == null ? default(DateTime) : DateTime.Parse(GetValue("created")),
                 Creator = GetValue("creator"),
+                Date = DateTime.Parse(GetValue("date")),
                 Language = GetValue("language"),
                 Title = GetValue("title")
             };
