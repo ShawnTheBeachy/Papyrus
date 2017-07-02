@@ -13,6 +13,12 @@ namespace Papyrus
             _rootFolder = folder;
         }
 
+        #region RootPath
+
+        public string RootPath => _rootFolder.Path;
+
+        #endregion RootPath
+
         #region Title
 
         private string _title = default(string);
