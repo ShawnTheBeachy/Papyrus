@@ -15,7 +15,23 @@ namespace Papyrus
             for (var i = 0; i < pathParts.Length - 1; i++)
                 folder = await folder.GetFolderAsync(pathParts[i]);
 
-            return await folder.GetFileAsync(pathParts.Last());
+            IStorageItem file;
+
+            if (pathParts.Last().Contains("#"))
+            {
+                file = await folder.TryGetItemAsync(pathParts.Last().Split('#').FirstOrDefault());
+
+                if (file == null)
+                    file = await folder.TryGetItemAsync(pathParts.Last());
+
+                if (file == null)
+                    throw new Exception("Couldn't find an appropriate file.");
+            }
+
+            else
+                file = await folder.GetFileAsync(pathParts.Last());
+
+            return file as StorageFile;
         }
     }
 }
