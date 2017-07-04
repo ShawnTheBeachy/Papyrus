@@ -49,7 +49,7 @@ namespace Papyrus.Demo
         private async void NavPointsListView_ItemClick(object sender, ItemClickEventArgs e)
         {
             var navPoint = e.ClickedItem as NavPoint;
-            var contents = await navPoint.GetContentsAsync();
+            var contents = await EBook.GetContentsAsync(navPoint);
             ContentWebView.NavigateToString(contents);
         }
     }
