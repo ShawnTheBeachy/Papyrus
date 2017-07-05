@@ -44,11 +44,13 @@
                RelativePanel.Below="CurrentFolderTextBlock"
                RelativePanel.RightOf="TableOfContentsPanel"
                Source="{x:Bind EBook.Cover, Mode=OneWay}" />
-        <RichTextBlock x:Name="ContentTextBlock"
-                       RelativePanel.AlignBottomWithPanel="True"
-                       RelativePanel.AlignRightWithPanel="True"
-                       RelativePanel.Below="CoverImage"
-                       RelativePanel.RightOf="TableOfContentsPanel" />
+        <ScrollViewer x:Name="ContentScrollViewer"
+                      RelativePanel.AlignBottomWithPanel="True"
+                      RelativePanel.AlignRightWithPanel="True"
+                      RelativePanel.Below="CoverImage"
+                      RelativePanel.RightOf="TableOfContentsPanel">
+            <RichTextBlock x:Name="ContentTextBlock" />
+        </ScrollViewer>
     </RelativePanel>
 
     <Page.BottomAppBar>

@@ -3,7 +3,6 @@ using Papyrus.HtmlParser;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using Windows.Storage.Pickers;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -50,13 +49,14 @@ namespace Papyrus.Demo
 
         private async void NavPointsListView_ItemClick(object sender, ItemClickEventArgs e)
         {
+            ContentTextBlock.Blocks.Clear();
             var navPoint = e.ClickedItem as NavPoint;
             var contents = await EBook.GetContentsAsync(navPoint);
             var converter = new Converter();
-            var els = converter.Convert(contents);
+            converter.Convert(contents);
 
-            foreach (var el in els.Where(a => a != null).ToList())
-                ContentTextBlock.Blocks.Add(el);
+            foreach (var block in converter.ConvertedBlocks)
+                ContentTextBlock.Blocks.Add(block);
         }
     }
 }

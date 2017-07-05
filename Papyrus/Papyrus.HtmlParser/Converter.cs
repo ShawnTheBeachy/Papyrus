@@ -1,54 +1,32 @@
 ﻿using HtmlAgilityPack;
-using Papyrus.HtmlParser.Parsers;
+using Papyrus.HtmlParser.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.UI;
 using Windows.UI.Text;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Documents;
-using Windows.UI.Xaml.Media;
 
 namespace Papyrus.HtmlParser
 {
     public class Converter
     {
-        public ObservableCollection<Block> ConvertedBlocks { get; set; } = new ObservableCollection<Block>();
-
-        private Dictionary<string, IParser> ParserMap => new Dictionary<string, IParser>
+        private Dictionary<string, double> _headerFontSizes = new Dictionary<string, double>
         {
-            ["#text"] = TextParser,
-            ["a"] = LinkParser,
-            ["b"] = BoldParser,
-            ["blockquote"] = BlockquoteParser,
-            ["br"] = LineBreakParser,
-            ["center"] = CenterParser,
-            ["div"] = ParagraphParser,
-            ["em"] = ItalicParser,
-            ["h1"] = HeaderOneParser,
-            ["h2"] = HeaderTwoParser,
-            ["h3"] = HeaderThreeParser,
-            ["h4"] = HeaderFourParser,
-            ["h5"] = HeaderFiveParser,
-            ["h6"] = HeaderSixParser,
-            ["i"] = ItalicParser,
-            ["p"] = ParagraphParser,
-            ["span"] = SpanParser,
-            ["strong"] = BoldParser
+            ["h1"] = 36,
+            ["h2"] = 32,
+            ["h3"] = 28,
+            ["h4"] = 24,
+            ["h5"] = 20,
+            ["h6"] = 16
         };
-
-        private void ParseChildren(HtmlNode node, TextElement parent)
-        {
-            if (!ParserMap.ContainsKey(node.Name))
-                return;
-
-            var parser = ParserMap[node.Name];
-            parser.Parse(node);
-        }
-
+        private Paragraph _currentParagraph = new Paragraph();
+        public ObservableCollection<Block> ConvertedBlocks { get; set; } = new ObservableCollection<Block>();
+        
         public async Task ConvertAsync(StorageFile file)
         {
             Convert(await FileIO.ReadTextAsync(file));
@@ -56,198 +34,172 @@ namespace Papyrus.HtmlParser
 
         public void Convert(string html)
         {
+            ConvertedBlocks.Clear();
             var bodyIndex = html.IndexOf("<body");
-            html = html.Substring(bodyIndex);
+
+            if (bodyIndex > -1)
+                html = html.Substring(bodyIndex);
+
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
-            var bodyNode = doc.DocumentNode.Element("body");
+            var baseNode = doc.DocumentNode.Element("body") ?? doc.DocumentNode;
 
-            foreach (var child in bodyNode.ChildNodes)
-                ParseNode(child);
+            var s = new Style();
+
+            foreach (var child in baseNode.ChildNodes)
+                ParseNode(child, s);
+
+            if (_currentParagraph != null)
+                ConvertedBlocks.Add(_currentParagraph);
         }
-
-        #region Parsers
-
-        private BlockParser BlockquoteParser => new BlockParser { Parse = ParseBlockquote };
-        private InlineParser BoldParser => new InlineParser { Parse = ParseBold };
-        private BlockParser CenterParser => new BlockParser { Parse = ParseCenter };
-        private BlockParser HeaderOneParser => new BlockParser { Parse = ParseHeaderOne };
-        private BlockParser HeaderTwoParser => new BlockParser { Parse = ParseHeaderTwo };
-        private BlockParser HeaderThreeParser => new BlockParser { Parse = ParseHeaderThree };
-        private BlockParser HeaderFourParser => new BlockParser { Parse = ParseHeaderFour };
-        private BlockParser HeaderFiveParser => new BlockParser { Parse = ParseHeaderFive };
-        private BlockParser HeaderSixParser => new BlockParser { Parse = ParseHeaderSix };
-        private InlineParser ItalicParser => new InlineParser { Parse = ParseItalic };
-        private InlineParser LineBreakParser => new InlineParser { Parse = ParseLineBreak };
-        private InlineParser LinkParser => new InlineParser { Parse = ParseLink };
-        private BlockParser ParagraphParser => new BlockParser { Parse = ParseParagraph };
-        private InlineParser SpanParser => new InlineParser { Parse = ParseSpan };
-        private InlineParser TextParser => new InlineParser { Parse = ParseText };
-
-        #endregion Parsers
 
         #region ParseMethods
 
-        private void ParseBlockquote(HtmlNode node)
+        Inline ParseNode(HtmlNode node, Style style)
         {
-            var paragraphs = ParseParagraph(node);
-
-            foreach (var paragraph in paragraphs)
+            switch (node.Name)
             {
-                paragraph.Foreground = new SolidColorBrush(Colors.Gray);
-                paragraph.Margin = new Thickness(12, 0, 0, 0);
-
-                ConvertedBlocks.Add(paragraph);
+                case "#text":
+                    return ParseText(node, style);
+                case "a":
+                    return ParseLink(node, style);
+                case "b":
+                    return ParseBold(node, style);
+                case "blockquote":
+                    var blockquoteStyle = new Style(style) { Foreground = Colors.Gray };
+                    ParseParagraph(node, blockquoteStyle);
+                    return null;
+                case "br":
+                    return new LineBreak();
+                case "center":
+                    var centerStyle = new Style(style) { TextAlignment = TextAlignment.Center };
+                    ParseParagraph(node, centerStyle);
+                    return null;
+                case "h1":
+                case "h2":
+                case "h3":
+                case "h4":
+                case "h5":
+                case "h6":
+                    var headerStyle = new Style(style)
+                    {
+                        FontSize = _headerFontSizes[node.Name],
+                        FontWeight = FontWeights.Bold
+                    };
+                    ParseParagraph(node, headerStyle);
+                    return null;
+                case "i":
+                    return ParseItalic(node, style);
+                case "p":
+                case "div":
+                    ParseParagraph(node, style);
+                    return null;
+                case "span":
+                    return ParseSpan(node, style);
+                default:
+                    return null;
             }
         }
-
-        private void ParseBold(HtmlNode node)
+        
+        Bold ParseBold(HtmlNode node, Style style)
         {
             var bold = new Bold();
+            bold.ApplyStyle(style);
+            var boldStyle = new Style(style)
+            {
+                FontWeight = FontWeights.Bold
+            };
 
             foreach (var child in node.ChildNodes)
-            {
-                bold.Inlines.Add(ParseNode(child) as Inline);
-            }
+                bold.Inlines.SafeAdd(ParseNode(child, boldStyle));
 
             return bold;
         }
 
-        private IEnumerable<Paragraph> ParseCenter(HtmlNode node)
-        {
-            var paragraphs = ParseParagraph(node);
-
-            foreach (var paragraph in paragraphs)
-                paragraph.TextAlignment = TextAlignment.Center;
-
-            return paragraphs;
-        }
-
-        private IEnumerable<Paragraph> ParseHeaderOne(HtmlNode node)
-        {
-            var paragraphs = ParseParagraph(node);
-
-            foreach (var paragraph in paragraphs)
-            {
-                paragraph.FontSize = 36;
-                paragraph.FontWeight = FontWeights.SemiBold;
-            }
-
-            return paragraphs;
-        }
-
-        private IEnumerable<Paragraph> ParseHeaderTwo(HtmlNode node)
-        {
-            var paragraphs = ParseParagraph(node);
-
-            foreach (var paragraph in paragraphs)
-            {
-                paragraph.FontSize = 32;
-                paragraph.FontWeight = FontWeights.SemiBold;
-            }
-
-            return paragraphs;
-        }
-
-        private Paragraph ParseHeaderThree(HtmlNode node)
-        {
-            var paragraph = ParseParagraph(node).FirstOrDefault();
-            paragraph.FontSize = 28;
-            paragraph.FontWeight = FontWeights.SemiBold;
-            return paragraph;
-        }
-
-        private Paragraph ParseHeaderFour(HtmlNode node)
-        {
-            var paragraph = ParseParagraph(node).FirstOrDefault();
-            paragraph.FontSize = 24;
-            paragraph.FontWeight = FontWeights.SemiBold;
-            return paragraph;
-        }
-
-        private Paragraph ParseHeaderFive(HtmlNode node)
-        {
-            var paragraph = ParseParagraph(node).FirstOrDefault();
-            paragraph.FontSize = 20;
-            paragraph.FontWeight = FontWeights.SemiBold;
-            return paragraph;
-        }
-
-        private Paragraph ParseHeaderSix(HtmlNode node)
-        {
-            var paragraph = ParseParagraph(node).FirstOrDefault();
-            paragraph.FontSize = 16;
-            paragraph.FontWeight = FontWeights.SemiBold;
-            return paragraph;
-        }
-
-        private Italic ParseItalic(HtmlNode node)
+        Italic ParseItalic(HtmlNode node, Style style)
         {
             var italic = new Italic();
+            italic.ApplyStyle(style);
+            var italicStyle = new Style(style)
+            {
+                FontStyle = FontStyle.Italic
+            };
 
             foreach (var child in node.ChildNodes)
-                italic.Inlines.Add(ParseNode(child) as Inline);
+                italic.Inlines.SafeAdd(ParseNode(child, italicStyle));
 
             return italic;
         }
 
-        private LineBreak ParseLineBreak(HtmlNode node)
-        {
-            var lineBreak = new LineBreak();
-            return lineBreak;
-        }
-
-        private Hyperlink ParseLink(HtmlNode node)
+        Hyperlink ParseLink(HtmlNode node, Style style)
         {
             var url = node.Attributes["href"]?.Value;
+            url = url == null || url.Contains("://") ? url : $"epub://{url}";
+
             var hyperlink = new Hyperlink
             {
-                NavigateUri = url == null ? null : new Uri(url)
+                NavigateUri = url == null ? null : new Uri(url, UriKind.RelativeOrAbsolute)
             };
+            hyperlink.ApplyStyle(style);
 
             foreach (var child in node.ChildNodes)
-                hyperlink.Inlines.Add(ParseNode(child) as Inline);
+                hyperlink.Inlines.SafeAdd(ParseNode(child, style));
 
             return hyperlink;
         }
 
-        private IEnumerable<Paragraph> ParseParagraph(HtmlNode node)
+        void ParseParagraph(HtmlNode node, Style style)
         {
-            var paragraphs = new List<Paragraph>();
-            var paragraph = new Paragraph();
+            if (_currentParagraph.Inlines.Count > 0)
+                ConvertedBlocks.Add(_currentParagraph);
+
+            _currentParagraph = new Paragraph();
 
             foreach (var child in node.ChildNodes)
-            {
-                var element = ParseNode(child);
-
-                if (element is Block)
-                {
-                    paragraphs.Add(paragraph);
-                    paragraph = element as Paragraph;
-                }
-
-                else
-                    paragraph.Inlines.Add(element as Inline);
-            }
-
-            return paragraphs;
+                _currentParagraph.Inlines.SafeAdd(ParseNode(child, style));
         }
 
-        private Span ParseSpan(HtmlNode node)
+        Span ParseSpan(HtmlNode node, Style style)
         {
             var span = new Span();
+            span.ApplyStyle(style);
 
             foreach (var child in node.ChildNodes)
-                span.Inlines.Add(ParseNode(child) as Inline);
+                span.Inlines.SafeAdd(ParseNode(child, style));
 
             return span;
         }
 
-        private Run ParseText(HtmlNode node)
+        Run ParseText(HtmlNode node, Style style)
         {
-            return new Run { Text = node.InnerText };
+            if (node.InnerText.Replace(" ", string.Empty).Replace("\n", string.Empty).Length == 0)
+                return null;
+
+            var run = new Run { Text = Regex.Replace(node.InnerText, @"\s+", " ").Replace('\n', ' ') };
+            run.ApplyStyle(style);
+            return run;
         }
 
         #endregion ParseMethods
+    }
+
+    public class Style
+    {
+        public Style() { }
+
+        public Style(Style style)
+        {
+            FontSize = style.FontSize;
+            FontStyle = style.FontStyle;
+            FontWeight = style.FontWeight;
+            Foreground = style.Foreground;
+            TextAlignment = style.TextAlignment;
+        }
+
+        public double FontSize { get; set; } = 16;
+        public FontStyle FontStyle { get; set; } = FontStyle.Normal;
+        public FontWeight FontWeight { get; set; } = FontWeights.Normal;
+        public Color Foreground { get; set; } = Colors.Black;
+        public TextAlignment TextAlignment { get; set; } = TextAlignment.Left;
     }
 }

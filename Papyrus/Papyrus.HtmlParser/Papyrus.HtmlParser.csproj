@@ -107,9 +107,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Converter.cs" />
-    <Compile Include="Parsers\BlockParser.cs" />
-    <Compile Include="Parsers\InlineParser.cs" />
-    <Compile Include="Parsers\Parser.cs" />
+    <Compile Include="Extensions\BlockExtensions.cs" />
+    <Compile Include="Extensions\InlineCollectionExtensions.cs" />
+    <Compile Include="Extensions\InlineExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Papyrus.HtmlParser.rd.xml" />
   </ItemGroup>
