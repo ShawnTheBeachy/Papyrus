@@ -20,7 +20,7 @@
             <SplitView.Pane>
                 <ListView x:Name="TableOfContentsListView"
                           ItemsSource="{x:Bind EBook.TableOfContents.FlatItems, Mode=OneWay}"
-                          Padding="0 60 0 0"
+                          Padding="0 12 0 0"
                           SelectionChanged="TableOfContentsListView_SelectionChanged">
                     <ListView.Header>
                         <StackPanel x:Name="TableOfContentsHeader"
@@ -43,49 +43,79 @@
             </SplitView.Pane>
             <SplitView.Content>
                 <RelativePanel>
-                    <RichTextBlock x:Name="ContentTextBlock"
-                                   LineHeight="{x:Bind LineHeightSlider.Value, Mode=OneWay}"
-                                   Margin="24"
-                                   RelativePanel.AlignBottomWithPanel="True"
-                                   RelativePanel.AlignLeftWithPanel="True"
-                                   RelativePanel.AlignRightWithPanel="True"
-                                   RelativePanel.AlignTopWithPanel="True"
-                                   TextIndent="{x:Bind IndentSlider.Value, Mode=OneWay}" />
+                    <ScrollViewer x:Name="ContentScrollViewer"
+                                  RelativePanel.AlignBottomWithPanel="True"
+                                  RelativePanel.AlignLeftWithPanel="True"
+                                  RelativePanel.AlignRightWithPanel="True"
+                                  RelativePanel.AlignTopWithPanel="True">
+                        <RichTextBlock x:Name="ContentTextBlock"
+                                       LineHeight="{x:Bind LineHeightSlider.Value, Mode=OneWay}"
+                                       Margin="24"
+                                       TextIndent="{x:Bind IndentSlider.Value, Mode=OneWay}" />
+                    </ScrollViewer>
                 </RelativePanel>
             </SplitView.Content>
         </SplitView>
-        <Button x:Name="TableOfContentsButton"
-                Click="TableOfContentsButton_Click"
-                Height="48"
-                RelativePanel.AlignLeftWithPanel="True"
-                RelativePanel.AlignTopWithPanel="True"
-                Width="48">
-            <FontIcon FontFamily="/Assets/Papyrus.ttf#Papyrus"
-                      FontSize="24"
-                      Glyph="&#xf102;" />
-        </Button>
-        <Popup x:Name="OptionsPopup"
-               IsOpen="True"
-               RelativePanel.AlignBottomWithPanel="True"
-               RelativePanel.AlignRightWithPanel="True">
-            <StackPanel Background="#EEE"
-                        BorderBrush="#AAA"
-                        BorderThickness="1"
-                        Orientation="Vertical"
-                        Padding="12">
-                <Slider x:Name="LineHeightSlider"
-                        Header="Line height"
-                        Margin="12 4"
-                        Maximum="60"
-                        Minimum="20"
-                        Value="24" />
-                <Slider x:Name="IndentSlider"
-                        Header="Paragraph indentation"
-                        Margin="12 4"
-                        Maximum="60"
-                        Minimum="12"
-                        Value="24" />
-            </StackPanel>
-        </Popup>
     </RelativePanel>
+
+    <Page.BottomAppBar>
+        <CommandBar x:Name="BottomCommandBar">
+            <AppBarButton x:Name="OptionsButton"
+                          Label="Options">
+                <AppBarButton.Icon>
+                    <FontIcon FontFamily="/Assets/Papyrus.ttf#Papyrus"
+                              FontSize="24"
+                              Glyph="&#xf104;" />
+                </AppBarButton.Icon>
+                <AppBarButton.Flyout>
+                    <Flyout x:Name="OptionsFlyout">
+                        <StackPanel x:Name="OptionsPanel"
+                                    Orientation="Vertical">
+                            <Slider x:Name="LineHeightSlider"
+                                    Header="Line height"
+                                    Margin="0 4"
+                                    Maximum="60"
+                                    Minimum="20"
+                                    Value="24" />
+                            <Slider x:Name="IndentSlider"
+                                    Header="Paragraph indentation"
+                                    Margin="0 4"
+                                    Maximum="60"
+                                    Minimum="12"
+                                    Value="24" />
+                            <RadioButton x:Name="SegoeRadioButton"
+                                         Checked="FontFamily_Checked"
+                                         Content="Segoe UI"
+                                         GroupName="FontFamily"
+                                         IsChecked="True"
+                                         Margin="0 4" />
+                            <RadioButton x:Name="ConsolasRadioButton"
+                                         Checked="FontFamily_Checked"
+                                         Content="Consolas"
+                                         GroupName="FontFamily"
+                                         Margin="0 4" />
+                        </StackPanel>
+                    </Flyout>
+                </AppBarButton.Flyout>
+            </AppBarButton>
+            <AppBarButton x:Name="TableOfContentsButton"
+                          Click="TableOfContentsButton_Click"
+                          Label="Table of contents">
+                <AppBarButton.Icon>
+                    <FontIcon FontFamily="/Assets/Papyrus.ttf#Papyrus"
+                              FontSize="24"
+                              Glyph="&#xf102;" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <AppBarButton x:Name="LibraryButton"
+                          Click="LibraryButton_Click"
+                          Label="Library">
+                <AppBarButton.Icon>
+                    <FontIcon FontFamily="/Assets/Papyrus.ttf#Papyrus"
+                              FontSize="24"
+                              Glyph="&#xf101;" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+        </CommandBar>
+    </Page.BottomAppBar>
 </Page>

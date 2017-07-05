@@ -1,7 +1,10 @@
 ﻿using Papyrus.HtmlParser;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 namespace Papyrus.Demo
@@ -20,7 +23,7 @@ namespace Papyrus.Demo
             DependencyProperty.Register("EBook", typeof(EBook), typeof(BookPage), new PropertyMetadata(null));
 
         #endregion EBook
-
+        
         public BookPage()
         {
             InitializeComponent();
@@ -49,6 +52,16 @@ namespace Papyrus.Demo
 
             foreach (var block in converter.ConvertedBlocks)
                 ContentTextBlock.Blocks.Add(block);
+        }
+
+        private void LibraryButton_Click(object sender, RoutedEventArgs e)
+        {
+            Frame.GoBack();
+        }
+        
+        private void FontFamily_Checked(object sender, RoutedEventArgs e)
+        {
+            ContentTextBlock.FontFamily = new FontFamily((sender as RadioButton).Content as string);
         }
     }
 }

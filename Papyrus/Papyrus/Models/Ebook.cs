@@ -29,6 +29,7 @@ namespace Papyrus
             foreach (var item in (await this.GetManifestAsync()).ToList())
                 Manifest.Add(item.Id, item);
 
+            Spine = await this.GetSpineAsync();
             TableOfContents = await this.GetTableOfContentsAsync();
             Cover = await this.GetCoverAsync();
         }
@@ -66,6 +67,13 @@ namespace Papyrus
         public string RootPath => _rootFolder.Path;
 
         #endregion RootPath
+
+        #region Spine
+
+        private Spine _spine = new Spine();
+        public Spine Spine { get => _spine; set => Set(ref _spine, value); }
+
+        #endregion Spine
 
         #region TableOfContents
 

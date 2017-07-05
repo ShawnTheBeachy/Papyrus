@@ -10,6 +10,7 @@ using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Navigation;
 
 namespace Papyrus.Demo
 {
@@ -66,8 +67,12 @@ namespace Papyrus.Demo
             return extractFolder;
         }
 
-        private async void Page_Loaded(object sender, RoutedEventArgs e)
+        protected async override void OnNavigatedTo(NavigationEventArgs e)
         {
+            base.OnNavigatedTo(e);
+
+            EBooks.Clear();
+
             var epubFolders = await ApplicationData.Current.LocalFolder.GetFoldersAsync();
 
             foreach (var epubFolder in epubFolders)
