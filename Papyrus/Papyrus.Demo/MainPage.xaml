@@ -11,6 +11,7 @@
     <RelativePanel Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <GridView x:Name="EBooksGridView"
                   IsItemClickEnabled="True"
+                  ItemClick="EBooksGridView_ItemClick"
                   ItemsSource="{x:Bind EBooks, Mode=OneWay}"
                   Margin="12"
                   RelativePanel.AlignBottomWithPanel="True"

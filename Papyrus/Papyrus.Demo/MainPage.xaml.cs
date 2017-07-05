@@ -32,19 +32,7 @@ namespace Papyrus.Demo
         {
             InitializeComponent();
         }
-
-        private async void NavPointsListView_ItemClick(object sender, ItemClickEventArgs e)
-        {
-            //ContentTextBlock.Blocks.Clear();
-            //var navPoint = e.ClickedItem as NavPoint;
-            //var contents = await EBook.GetContentsAsync(navPoint);
-            //var converter = new Converter();
-            //converter.Convert(contents);
-
-            //foreach (var block in converter.ConvertedBlocks)
-            //    ContentTextBlock.Blocks.Add(block);
-        }
-
+        
         private async void OpenBookButton_Click(object sender, RoutedEventArgs e)
         {
             var picker = new FileOpenPicker
@@ -88,6 +76,11 @@ namespace Papyrus.Demo
                 await eBook.InitializeAsync();
                 EBooks.Add(eBook);
             }
+        }
+
+        private void EBooksGridView_ItemClick(object sender, ItemClickEventArgs e)
+        {
+            Frame.Navigate(typeof(BookPage), e.ClickedItem);
         }
     }
 }
