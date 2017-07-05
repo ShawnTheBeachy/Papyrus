@@ -1,21 +1,62 @@
-﻿using System;
+﻿using HtmlAgilityPack;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Windows.Storage;
+using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
 
 namespace Papyrus
 {
-    internal static class EBookExtensions
+    public static class EBookExtensions
     {
+        /// <summary>
+        /// Gets XHTML content for a file.
+        /// </summary>
+        /// <param name="ebook"></param>
+        /// <param name="navPoint"></param>
+        /// <returns></returns>
+        public static async Task<string> GetContentsAsync(this EBook ebook, NavPoint navPoint, bool embedImages = true)
+        {
+            var fullContentPath = Path.GetFullPath(ebook._rootFolder.Path.EnsureEnd("\\") + ebook.ContentLocation);
+            var tocPath = Path.GetFullPath(Path.GetDirectoryName(fullContentPath).EnsureEnd("\\") + ebook.Manifest["ncx"].ContentLocation);
+            var filePath = Path.GetFullPath(Path.GetDirectoryName(tocPath).EnsureEnd("\\") + navPoint.ContentPath);
+            var contentFile = await navPoint._rootFolder.GetFileFromPathAsync(filePath.Substring(navPoint._rootFolder.Path.Length));
+            var contents = await FileIO.ReadTextAsync(contentFile);
+
+            if (embedImages)
+            {
+                var contentPath = Path.Combine(navPoint._rootFolder.Path, navPoint.ContentPath);
+                var imageMatches = new Regex(@"<img.*/>", RegexOptions.IgnoreCase).Matches(contents).OfType<Match>().ToList();
+
+                foreach (var match in imageMatches)
+                {
+                    var imageNode = HtmlNode.CreateNode(match.Value);
+                    var imageSource = imageNode.Attributes["src"].Value;
+
+                    var imgPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(contentPath), imageSource));
+                    var imageFile = await navPoint._rootFolder.GetFileFromPathAsync(imgPath.Substring(navPoint._rootFolder.Path.Length));
+                    var image = await FileIO.ReadBufferAsync(imageFile);
+                    var base64 = Convert.ToBase64String(image.ToArray());
+                    imageNode.Attributes["src"].Value = $"data:image/{imageFile.FileType};base64,{base64}";
+                    contents = contents.Replace(match.Value, imageNode.OuterHtml);
+                }
+            }
+
+            return contents;
+        }
+        
         /// <summary>
         /// Gets the location of the content.opf file.
         /// </summary>
         /// <param name="ebook">The EBook for which to get the content location.</param>
         /// <returns>A string location.</returns>
-        public static async Task<string> GetContentLocationAsync(this EBook ebook)
+        internal static async Task<string> GetContentLocationAsync(this EBook ebook)
         {
             async Task<string> GetContentXmlAsync()
             {
@@ -46,11 +87,61 @@ namespace Papyrus
         }
 
         /// <summary>
+        /// Gets a bitmap image of the cover.
+        /// </summary>
+        /// <param name="ebook"></param>
+        /// <returns></returns>
+        internal static async Task<ImageSource> GetCoverAsync(this EBook ebook)
+        {
+            if (!ebook.Manifest.ContainsKey("cover"))
+                return null;
+
+            var relativeLocation = ebook.Manifest["cover"].ContentLocation;
+            var coverFile = await ebook._rootFolder.GetFileFromPathAsync(Path.Combine(Path.GetDirectoryName(ebook.ContentLocation), relativeLocation));
+            var stream = await coverFile.OpenReadAsync();
+            var bitmap = new BitmapImage();
+            bitmap.SetSource(stream);
+            return bitmap;
+        }
+
+        /// <summary>
+        /// Gets a list of ManifestItems for an EBook.
+        /// </summary>
+        /// <param name="ebook"></param>
+        /// <returns></returns>
+        internal static async Task<IEnumerable<ManifestItem>> GetManifestAsync(this EBook ebook)
+        {
+            var items = new List<ManifestItem>();
+
+            IEnumerable<XElement> GetManifestItemNodes(string xml)
+            {
+                var doc = XDocument.Parse(xml);
+                var ns = doc.Root.GetDefaultNamespace();
+                var node = doc.Element(ns + "package").Element(ns + "manifest");
+                var itemNodes = node.Elements(ns + "item");
+                return itemNodes;
+            }
+
+            var contentFile = await ebook._rootFolder.GetFileFromPathAsync(ebook.ContentLocation);
+            var contentXml = await FileIO.ReadTextAsync(contentFile);
+
+            foreach (var itemNode in GetManifestItemNodes(contentXml).ToList())
+                items.Add(new ManifestItem
+                {
+                    ContentLocation = itemNode.Attribute("href").Value,
+                    Id = itemNode.Attribute("id").Value,
+                    MediaType = itemNode.Attribute("media-type").Value
+                });
+
+            return items;
+        }
+
+        /// <summary>
         /// Gets metadata from an EBook.
         /// </summary>
         /// <param name="ebook">The EBook for which to get metadata.</param>
         /// <returns>The metadata object.</returns>
-        public static async Task<Metadata> GetMetadataAsync(this EBook ebook)
+        internal static async Task<Metadata> GetMetadataAsync(this EBook ebook)
         {
             XElement GetMetadataNode(string xml)
             {
@@ -85,9 +176,14 @@ namespace Papyrus
             return metadata;
         }
 
-        public static async Task<TableOfContents> GetTableOfContentsAsync(this EBook ebook)
+        /// <summary>
+        /// Gets the table of contents for an EBook.
+        /// </summary>
+        /// <param name="ebook"></param>
+        /// <returns></returns>
+        internal static async Task<TableOfContents> GetTableOfContentsAsync(this EBook ebook)
         {
-            var relativeLocation = await ebook.GetTableOfContentsLocationAsync();
+            var relativeLocation = ebook.Manifest["ncx"].ContentLocation;
             var tocFile = await ebook._rootFolder.GetFileFromPathAsync(Path.Combine(Path.GetDirectoryName(ebook.ContentLocation), relativeLocation));
             var xml = await FileIO.ReadTextAsync(tocFile);
             var doc = XDocument.Parse(xml);
@@ -112,6 +208,7 @@ namespace Papyrus
                         ContentPath = navPointNode.Element(ns + "content").Attribute("src").Value,
                         Id = navPointNode.Attribute("id").Value,
                         PlayOrder = int.Parse(navPointNode.Attribute("playOrder").Value),
+                        _rootFolder = ebook._rootFolder,
                         Text = navPointNode.Element(ns + "navLabel").Element(ns + "text").Value
                     };
 
@@ -131,32 +228,11 @@ namespace Papyrus
         }
 
         /// <summary>
-        /// Gets the relative location of the toc.ncx file for this EBook.
-        /// </summary>
-        /// <param name="ebook"></param>
-        /// <returns></returns>
-        public static async Task<string> GetTableOfContentsLocationAsync(this EBook ebook)
-        {
-            XElement GetTocNode(string xml)
-            {
-                var doc = XDocument.Parse(xml);
-                var ns = doc.Root.GetDefaultNamespace();
-                var node = doc.Element(ns + "package").Element(ns + "manifest").Elements(ns + "item").FirstOrDefault(a => a.Attribute("id").Value == "ncx");
-                return node;
-            }
-
-            var contentFile = await ebook._rootFolder.GetFileFromPathAsync(ebook.ContentLocation);
-            var contentXml = await FileIO.ReadTextAsync(contentFile);
-            var tocNode = GetTocNode(contentXml);
-            return tocNode.Attribute("href").Value;
-        }
-
-        /// <summary>
         /// Verifies that the EBook has a valid mimetype file.
         /// </summary>
         /// <param name="ebook">The EBook to be checked.</param>
         /// <returns>A bool indicating whether or not the miemtype is valid.</returns>
-        public static async Task<bool> VerifyMimetypeAsync(this EBook ebook)
+        internal static async Task<bool> VerifyMimetypeAsync(this EBook ebook)
         {
             bool VerifyMimetypeString(string value) =>
                 value == "application/epub+zip";

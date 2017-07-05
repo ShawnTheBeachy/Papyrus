@@ -109,7 +109,9 @@
     <Compile Include="BaseNotify.cs" />
     <Compile Include="Extensions\EBookExtensions.cs" />
     <Compile Include="Extensions\StorageExtensions.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Models\EBook.cs" />
+    <Compile Include="Models\ManifestItem.cs" />
     <Compile Include="Models\Metadata.cs" />
     <Compile Include="Models\NavPoint.cs" />
     <Compile Include="Models\TableOfContents.cs" />
@@ -117,14 +119,16 @@
     <EmbeddedResource Include="Properties\Papyrus.rd.xml" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="HtmlAgilityPack.NetCore">
+      <Version>1.5.0.1</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
-      <Version>5.2.3</Version>
+      <Version>5.3.3</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>10.0.3</Version>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

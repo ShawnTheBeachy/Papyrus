@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Papyrus.HtmlParser;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -44,6 +45,18 @@ namespace Papyrus.Demo
             Debug.WriteLine($"Content file location (relative): {EBook.ContentLocation}");
             Debug.WriteLine($"Content file location (absolute): {Path.Combine(EBook.RootPath, EBook.ContentLocation)}");
             Debug.WriteLine($"Metadata: {JsonConvert.SerializeObject(EBook.Metadata, Formatting.Indented)}");
+        }
+
+        private async void NavPointsListView_ItemClick(object sender, ItemClickEventArgs e)
+        {
+            ContentTextBlock.Blocks.Clear();
+            var navPoint = e.ClickedItem as NavPoint;
+            var contents = await EBook.GetContentsAsync(navPoint);
+            var converter = new Converter();
+            converter.Convert(contents);
+
+            foreach (var block in converter.ConvertedBlocks)
+                ContentTextBlock.Blocks.Add(block);
         }
     }
 }
