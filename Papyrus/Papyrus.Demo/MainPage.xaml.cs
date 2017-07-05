@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Papyrus.HtmlParser;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -48,9 +49,14 @@ namespace Papyrus.Demo
 
         private async void NavPointsListView_ItemClick(object sender, ItemClickEventArgs e)
         {
+            ContentTextBlock.Blocks.Clear();
             var navPoint = e.ClickedItem as NavPoint;
             var contents = await EBook.GetContentsAsync(navPoint);
-            ContentWebView.NavigateToString(contents);
+            var converter = new Converter();
+            converter.Convert(contents);
+
+            foreach (var block in converter.ConvertedBlocks)
+                ContentTextBlock.Blocks.Add(block);
         }
     }
 }
