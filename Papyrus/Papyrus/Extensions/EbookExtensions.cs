@@ -176,6 +176,38 @@ namespace Papyrus
             return metadata;
         }
 
+        internal static async Task<Spine> GetSpineAsync(this EBook ebook)
+        {
+            var spine = new Spine();
+
+            IEnumerable<XElement> GetSpineItemNodes(string xml)
+            {
+                var doc = XDocument.Parse(xml);
+                var ns = doc.Root.GetDefaultNamespace();
+                var node = doc.Element(ns + "package").Element(ns + "spine");
+                spine.Toc = node.Attribute("toc").Value;
+                var itemNodes = node.Elements(ns + "itemref");
+                return itemNodes;
+            }
+
+            var contentFile = await ebook._rootFolder.GetFileFromPathAsync(ebook.ContentLocation);
+            var contentXml = await FileIO.ReadTextAsync(contentFile);
+
+            foreach (var itemNode in GetSpineItemNodes(contentXml).ToList())
+                spine.Add(new SpineItem
+                {
+                    IdRef = itemNode.Attribute("idref").Value
+                });
+
+            return spine;
+        }
+
+        public static SpineItem GetSpineItem(this EBook ebook, ManifestItem manifestItem)
+        {
+            var spineItem = ebook.Spine.FirstOrDefault(a => a.IdRef == manifestItem.Id);
+            return spineItem;
+        }
+
         /// <summary>
         /// Gets the table of contents for an EBook.
         /// </summary>
@@ -183,7 +215,7 @@ namespace Papyrus
         /// <returns></returns>
         internal static async Task<TableOfContents> GetTableOfContentsAsync(this EBook ebook)
         {
-            var relativeLocation = ebook.Manifest["ncx"].ContentLocation;
+            var relativeLocation = ebook.Manifest[ebook.Spine.Toc].ContentLocation;
             var tocFile = await ebook._rootFolder.GetFileFromPathAsync(Path.Combine(Path.GetDirectoryName(ebook.ContentLocation), relativeLocation));
             var xml = await FileIO.ReadTextAsync(tocFile);
             var doc = XDocument.Parse(xml);
