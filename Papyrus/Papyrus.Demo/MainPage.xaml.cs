@@ -1,62 +1,91 @@
 ﻿using Newtonsoft.Json;
 using Papyrus.HtmlParser;
 using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
+using System.Threading.Tasks;
+using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Navigation;
 
 namespace Papyrus.Demo
 {
     public sealed partial class MainPage : Page
     {
-        #region EBook
+        #region EBooks
 
-        public EBook EBook
+        public ObservableCollection<EBook> EBooks
         {
-            get => (EBook)GetValue(EBookProperty); set => SetValue(EBookProperty, value);
+            get { return (ObservableCollection<EBook>)GetValue(EBooksProperty); }
+            set { SetValue(EBooksProperty, value); }
         }
-        
-        public static readonly DependencyProperty EBookProperty = DependencyProperty.Register("EBook", typeof(EBook), typeof(MainPage), new PropertyMetadata(null));
 
-        #endregion EBook
+        public static readonly DependencyProperty EBooksProperty =
+            DependencyProperty.Register("EBooks", typeof(ObservableCollection<EBook>), typeof(MainPage), new PropertyMetadata(new ObservableCollection<EBook>()));
+
+        #endregion EBooks
 
         public MainPage()
         {
             InitializeComponent();
         }
-
-        private async void OpenFolderButton_Click(object sender, RoutedEventArgs e)
+        
+        private async void OpenBookButton_Click(object sender, RoutedEventArgs e)
         {
-            var picker = new FolderPicker
+            var picker = new FileOpenPicker
             {
-                SettingsIdentifier = "TastesLikeTurkey.Papyrus.OpenFolderPicker",
-                SuggestedStartLocation = PickerLocationId.DocumentsLibrary
+                SettingsIdentifier = "com.TastesLikeTurkey.Papyrus.OpenEpubPicker",
+                SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
+                ViewMode = PickerViewMode.List
             };
-            picker.FileTypeFilter.Add(".epub");                     // This line is very important. The FolderPicker crashes if this line is deleted. See https://stackoverflow.com/questions/40456200/universal-app-folderpicker-system-runtime-interopservices-comexception for more information.
-            var folder = await picker.PickSingleFolderAsync();
+            picker.FileTypeFilter.Add(".epub");
+            var file = await picker.PickSingleFileAsync();
 
-            if (folder == null)
-                return;
-
-            EBook = new EBook(folder);
-            await EBook.InitializeAsync();
-            Debug.WriteLine($"Content file location (relative): {EBook.ContentLocation}");
-            Debug.WriteLine($"Content file location (absolute): {Path.Combine(EBook.RootPath, EBook.ContentLocation)}");
-            Debug.WriteLine($"Metadata: {JsonConvert.SerializeObject(EBook.Metadata, Formatting.Indented)}");
+            if (file != null)
+            {
+                var epubFolder = await ExtractZipAsync(file);
+                var eBook = new EBook(epubFolder);
+                await eBook.InitializeAsync();
+                EBooks.Add(eBook);
+            }
         }
 
-        private async void NavPointsListView_ItemClick(object sender, ItemClickEventArgs e)
+        private async Task<StorageFolder> ExtractZipAsync(StorageFile file)
         {
-            ContentTextBlock.Blocks.Clear();
-            var navPoint = e.ClickedItem as NavPoint;
-            var contents = await EBook.GetContentsAsync(navPoint);
-            var converter = new Converter();
-            converter.Convert(contents);
+            var extractFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(file.DisplayName, CreationCollisionOption.ReplaceExisting);
 
-            foreach (var block in converter.ConvertedBlocks)
-                ContentTextBlock.Blocks.Add(block);
+            using (var stream = await file.OpenStreamForReadAsync())
+            {
+                var archive = new ZipArchive(stream);
+                archive.ExtractToDirectory(extractFolder.Path);
+            }
+
+            return extractFolder;
+        }
+
+        protected async override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+
+            EBooks.Clear();
+
+            var epubFolders = await ApplicationData.Current.LocalFolder.GetFoldersAsync();
+
+            foreach (var epubFolder in epubFolders)
+            {
+                var eBook = new EBook(epubFolder);
+                await eBook.InitializeAsync();
+                EBooks.Add(eBook);
+            }
+        }
+
+        private void EBooksGridView_ItemClick(object sender, ItemClickEventArgs e)
+        {
+            Frame.Navigate(typeof(BookPage), e.ClickedItem);
         }
     }
 }

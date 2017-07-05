@@ -64,6 +64,7 @@ namespace Papyrus.HtmlParser
                 case "a":
                     return ParseLink(node, style);
                 case "b":
+                case "strong":
                     return ParseBold(node, style);
                 case "blockquote":
                     var blockquoteStyle = new Style(style) { Foreground = Colors.Gray };
@@ -89,6 +90,7 @@ namespace Papyrus.HtmlParser
                     ParseParagraph(node, headerStyle);
                     return null;
                 case "i":
+                case "em":
                     return ParseItalic(node, style);
                 case "p":
                 case "div":
