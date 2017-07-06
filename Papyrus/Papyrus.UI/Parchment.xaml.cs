@@ -1,7 +1,11 @@
 ﻿using Papyrus.HtmlParser;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
+using Windows.Foundation;
+using Windows.Foundation.Collections;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -11,7 +15,6 @@ namespace Papyrus.UI
 {
     public sealed partial class Parchment : UserControl
     {
-        private RichTextBlock _contentTextBlock;
         private Binding _paddingBinding, _lineHeightBinding, _indentationBinding;
 
         #region Dependency properties
@@ -77,23 +80,33 @@ namespace Papyrus.UI
                 Path = new PropertyPath("LineHeight"),
                 Mode = BindingMode.OneWay
             };
-            _contentTextBlock = new RichTextBlock();
+            _indentationBinding = new Binding
+            {
+                FallbackValue = 24,
+                TargetNullValue = 24,
+                Source = this,
+                Path = new PropertyPath("TextIndent"),
+                Mode = BindingMode.OneWay
+            };
         }
 
         public async Task LoadContentAsync(NavPoint navPoint)
         {
-            _contentTextBlock.Blocks.Clear();
-            MainFlipView.Items.Clear();
+            MainFlipView.ItemsSource = null;
+            var ContentTextBlock = new RichTextBlock();
+            ContentTextBlock.SetBinding(RichTextBlock.PaddingProperty, _paddingBinding);
+            ContentTextBlock.SetBinding(RichTextBlock.LineHeightProperty, _lineHeightBinding);
+            ContentTextBlock.SetBinding(RichTextBlock.TextIndentProperty, _indentationBinding);
+
             var contents = await Source.GetContentsAsync(navPoint);
             var converter = new Converter();
             converter.Convert(contents);
             
             foreach (var block in converter.ConvertedBlocks)
-                _contentTextBlock.Blocks.Add(block);
-            
-            Overflow(_contentTextBlock);
+                ContentTextBlock.Blocks.Add(block);
 
-            MainFlipView.Items.Add(_contentTextBlock);
+            Overflow(ContentTextBlock);
+            MainFlipView.Items.Add(ContentTextBlock);
         }
 
         private async void Overflow(RichTextBlock rtb)
@@ -104,18 +117,18 @@ namespace Papyrus.UI
                 {
                     var index = MainFlipView.Items.IndexOf(rtb);
                     var target = new RichTextBlockOverflow();
-                    target.SetBinding(PaddingProperty, _paddingBinding);
+                    target.SetBinding(RichTextBlockOverflow.PaddingProperty, _paddingBinding);
                     rtb.OverflowContentTarget = target;
                     await CoreWindow.GetForCurrentThread().Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
                         MainFlipView.Items.Insert(index + 1, target);
                     });
-                    await Overflow(target);
+                    await OverflowAsync(target);
                 }
 
                 else if (!rtb.HasOverflowContent && rtb.OverflowContentTarget != null)
                 {
-                    await Underflow(rtb.OverflowContentTarget);
+                    await UnderflowAsync(rtb.OverflowContentTarget);
                     await CoreWindow.GetForCurrentThread().Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
                         MainFlipView.Items.Remove(rtb.OverflowContentTarget);
@@ -132,7 +145,7 @@ namespace Papyrus.UI
             });
         }
 
-        private async Task Overflow(RichTextBlockOverflow rtb)
+        private async Task OverflowAsync(RichTextBlockOverflow rtb)
         {
             async Task Flow()
             {
@@ -140,18 +153,18 @@ namespace Papyrus.UI
                 {
                     var index = MainFlipView.Items.IndexOf(rtb);
                     var target = new RichTextBlockOverflow();
-                    target.SetBinding(PaddingProperty, _paddingBinding);
+                    target.SetBinding(RichTextBlockOverflow.PaddingProperty, _paddingBinding);
                     rtb.OverflowContentTarget = target;
                     await CoreWindow.GetForCurrentThread().Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
                         MainFlipView.Items.Insert(index + 1, target);
                     });
-                    await Overflow(target);
+                    await OverflowAsync(target);
                 }
 
                 else if (!rtb.HasOverflowContent && rtb.OverflowContentTarget != null)
                 {
-                    await Underflow(rtb.OverflowContentTarget);
+                    await UnderflowAsync(rtb.OverflowContentTarget);
                     await CoreWindow.GetForCurrentThread().Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
                         MainFlipView.Items.Remove(rtb.OverflowContentTarget);
@@ -168,7 +181,7 @@ namespace Papyrus.UI
             });
         }
 
-        private async Task Underflow(RichTextBlockOverflow rtbo)
+        private async Task UnderflowAsync(RichTextBlockOverflow rtbo)
         {
             async Task Flow()
             {

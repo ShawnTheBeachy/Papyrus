@@ -10,12 +10,20 @@
     d:DesignHeight="300"
     d:DesignWidth="400">
 
-    <RelativePanel>
+    <RelativePanel HorizontalAlignment="Stretch"
+                   VerticalAlignment="Stretch">
         <FlipView x:Name="MainFlipView"
-                      RelativePanel.AlignBottomWithPanel="True"
-                      RelativePanel.AlignLeftWithPanel="True"
-                      RelativePanel.AlignRightWithPanel="True"
-                      RelativePanel.AlignTopWithPanel="True" />
+                  RelativePanel.AlignBottomWithPanel="True"
+                  RelativePanel.AlignLeftWithPanel="True"
+                  RelativePanel.AlignRightWithPanel="True"
+                  RelativePanel.AlignTopWithPanel="True">
+            <FlipView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </FlipView.ItemsPanel>
+            
+        </FlipView>
         <!--<RichTextBlock x:Name="ContentTextBlock"
                            LineHeight="{x:Bind LineHeight, Mode=OneWay}"
                            Padding="{x:Bind ThisControl.Padding, Mode=OneWay}"

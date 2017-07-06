@@ -30,13 +30,11 @@
                 </ui:TableOfContents>
             </SplitView.Pane>
             <SplitView.Content>
-                <RelativePanel>
-                    <ui:Parchment x:Name="ContentParchment"
-                                  LineHeight="{x:Bind LineHeightSlider.Value, Mode=OneWay}"
-                                  Padding="24"
-                                  ParagraphIndentation="{x:Bind IndentSlider.Value, Mode=OneWay}"
-                                  Source="{x:Bind EBook, Mode=OneWay}" />
-                </RelativePanel>
+                <ui:Parchment x:Name="ContentParchment"
+                              LineHeight="{x:Bind LineHeightSlider.Value, Mode=OneWay}"
+                              Padding="24"
+                              ParagraphIndentation="{x:Bind IndentSlider.Value, Mode=OneWay}"
+                              Source="{x:Bind EBook, Mode=OneWay}" />
             </SplitView.Content>
         </SplitView>
     </RelativePanel>
