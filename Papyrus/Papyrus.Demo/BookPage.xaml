@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:papyrus="using:Papyrus"
+    xmlns:ui="using:Papyrus.UI"
     mc:Ignorable="d">
 
     <RelativePanel Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
@@ -18,41 +19,23 @@
                    RelativePanel.AlignRightWithPanel="True"
                    RelativePanel.AlignTopWithPanel="True">
             <SplitView.Pane>
-                <ListView x:Name="TableOfContentsListView"
-                          ItemsSource="{x:Bind EBook.TableOfContents.FlatItems, Mode=OneWay}"
-                          Padding="0 12 0 0"
-                          SelectionChanged="TableOfContentsListView_SelectionChanged">
-                    <ListView.Header>
-                        <StackPanel x:Name="TableOfContentsHeader"
-                                    BorderBrush="LightGray"
-                                    BorderThickness="0 0 0 1"
-                                    Orientation="Vertical">
-                            <TextBlock FontSize="16"
-                                       FontWeight="SemiBold"
-                                       Margin="12 0 0 12"
-                                       Text="Table of contents" />
-                        </StackPanel>
-                    </ListView.Header>
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="papyrus:NavPoint">
-                            <TextBlock x:Name="NavPoint"
-                                       Text="{x:Bind Text, Mode=OneWay}" />
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                <ui:TableOfContents Parchment="{x:Bind ContentParchment}"
+                                    Source="{x:Bind EBook.TableOfContents, Mode=OneWay}">
+                    <ui:TableOfContents.Header>
+                        <TextBlock FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Margin="12"
+                                   Text="Table of contents" />
+                    </ui:TableOfContents.Header>
+                </ui:TableOfContents>
             </SplitView.Pane>
             <SplitView.Content>
                 <RelativePanel>
-                    <ScrollViewer x:Name="ContentScrollViewer"
-                                  RelativePanel.AlignBottomWithPanel="True"
-                                  RelativePanel.AlignLeftWithPanel="True"
-                                  RelativePanel.AlignRightWithPanel="True"
-                                  RelativePanel.AlignTopWithPanel="True">
-                        <RichTextBlock x:Name="ContentTextBlock"
-                                       LineHeight="{x:Bind LineHeightSlider.Value, Mode=OneWay}"
-                                       Margin="24"
-                                       TextIndent="{x:Bind IndentSlider.Value, Mode=OneWay}" />
-                    </ScrollViewer>
+                    <ui:Parchment x:Name="ContentParchment"
+                                  LineHeight="{x:Bind LineHeightSlider.Value, Mode=OneWay}"
+                                  Padding="24"
+                                  ParagraphIndentation="{x:Bind IndentSlider.Value, Mode=OneWay}"
+                                  Source="{x:Bind EBook, Mode=OneWay}" />
                 </RelativePanel>
             </SplitView.Content>
         </SplitView>
@@ -83,17 +66,6 @@
                                     Maximum="60"
                                     Minimum="12"
                                     Value="24" />
-                            <RadioButton x:Name="SegoeRadioButton"
-                                         Checked="FontFamily_Checked"
-                                         Content="Segoe UI"
-                                         GroupName="FontFamily"
-                                         IsChecked="True"
-                                         Margin="0 4" />
-                            <RadioButton x:Name="ConsolasRadioButton"
-                                         Checked="FontFamily_Checked"
-                                         Content="Consolas"
-                                         GroupName="FontFamily"
-                                         Margin="0 4" />
                         </StackPanel>
                     </Flyout>
                 </AppBarButton.Flyout>

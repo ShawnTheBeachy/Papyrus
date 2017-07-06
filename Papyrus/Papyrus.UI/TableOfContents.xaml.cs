@@ -1,5 +1,8 @@
-﻿using Windows.UI.Xaml;
+﻿using System;
+using System.Linq;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Data;
 
 namespace Papyrus.UI
 {
@@ -7,6 +10,33 @@ namespace Papyrus.UI
     {
         #region Dependency properties
 
+        #region Header
+
+        public object Header
+        {
+            get { return GetValue(HeaderProperty); }
+            set { SetValue(HeaderProperty, value); }
+        }
+        
+        public static readonly DependencyProperty HeaderProperty =
+            DependencyProperty.Register("Header", typeof(object), typeof(TableOfContents), new PropertyMetadata(null));
+
+        #endregion Header
+
+        #region Parchment
+
+        public Parchment Parchment
+        {
+            get { return (Parchment)GetValue(ParchmentProperty); }
+            set { SetValue(ParchmentProperty, value); }
+        }
+
+
+        public static readonly DependencyProperty ParchmentProperty =
+            DependencyProperty.Register("Parchment", typeof(Parchment), typeof(TableOfContents), new PropertyMetadata(null));
+
+        #endregion Parchment
+        
         #region Source
 
         public Papyrus.TableOfContents Source
@@ -26,5 +56,22 @@ namespace Papyrus.UI
         {
             InitializeComponent();
         }
+
+        private async void TocListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            //SelectionChanged?.Invoke(sender, e);
+            await Parchment?.LoadContentAsync(e.AddedItems.FirstOrDefault() as NavPoint);
+        }
+    }
+
+    public class LevelToMarginConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            return new Thickness(24 * (int)value, 0, 0, 0);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language) => 
+            throw new NotImplementedException();
     }
 }

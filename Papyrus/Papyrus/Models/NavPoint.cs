@@ -28,6 +28,13 @@ namespace Papyrus
 
         #endregion Items
 
+        #region Level
+
+        private int _level = 0;
+        public int Level { get => _level; set => Set(ref _level, value); }
+
+        #endregion Level
+
         #region PlayOrder
 
         private int _playOrder = default(int);

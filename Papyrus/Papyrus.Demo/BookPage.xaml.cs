@@ -37,31 +37,10 @@ namespace Papyrus.Demo
 
         private void TableOfContentsButton_Click(object sender, RoutedEventArgs e) =>
             MainSplitView.IsPaneOpen = !MainSplitView.IsPaneOpen;
-
-        private async void TableOfContentsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            var navPoint = e.AddedItems.FirstOrDefault() as NavPoint;
-
-            if (navPoint == null)
-                return;
-
-            ContentTextBlock.Blocks.Clear();
-            var contents = await EBook.GetContentsAsync(navPoint);
-            var converter = new Converter();
-            converter.Convert(contents);
-
-            foreach (var block in converter.ConvertedBlocks)
-                ContentTextBlock.Blocks.Add(block);
-        }
-
+        
         private void LibraryButton_Click(object sender, RoutedEventArgs e)
         {
             Frame.GoBack();
-        }
-        
-        private void FontFamily_Checked(object sender, RoutedEventArgs e)
-        {
-            ContentTextBlock.FontFamily = new FontFamily((sender as RadioButton).Content as string);
         }
     }
 }

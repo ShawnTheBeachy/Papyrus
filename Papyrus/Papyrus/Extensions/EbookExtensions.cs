@@ -228,7 +228,7 @@ namespace Papyrus
 
             var navMapNode = doc.Element(ns + "ncx").Element(ns + "navMap");
 
-            IEnumerable<NavPoint> ParseNavPoints(XElement node)
+            IEnumerable<NavPoint> ParseNavPoints(XElement node, int level)
             {
                 var navPoints = new List<NavPoint>();
                 var navPointNodes = node.Elements(ns + "navPoint").ToList();
@@ -239,12 +239,13 @@ namespace Papyrus
                     {
                         ContentPath = navPointNode.Element(ns + "content").Attribute("src").Value,
                         Id = navPointNode.Attribute("id").Value,
+                        Level = level,
                         PlayOrder = int.Parse(navPointNode.Attribute("playOrder").Value),
                         _rootFolder = ebook._rootFolder,
                         Text = navPointNode.Element(ns + "navLabel").Element(ns + "text").Value
                     };
 
-                    foreach (var subNavPoint in ParseNavPoints(navPointNode).ToList())
+                    foreach (var subNavPoint in ParseNavPoints(navPointNode, level + 1).ToList())
                         navPoint.Items.Add(subNavPoint);
 
                     navPoints.Add(navPoint);
@@ -253,7 +254,7 @@ namespace Papyrus
                 return navPoints;
             }
 
-            foreach (var navPoint in ParseNavPoints(navMapNode).ToList())
+            foreach (var navPoint in ParseNavPoints(navMapNode, 0).ToList())
                 tableOfContents.Items.Add(navPoint);
 
             return tableOfContents;

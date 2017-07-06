@@ -6,10 +6,30 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
+    xmlns:papyrus="using:Papyrus"
     d:DesignHeight="300"
     d:DesignWidth="400">
 
-    <RelativePanel>
+    <UserControl.Resources>
+        <local:LevelToMarginConverter x:Key="LevelToMarginConverter" />
+    </UserControl.Resources>
 
+    <RelativePanel>
+        <ContentPresenter x:Name="HeaderPresenter"
+                          Content="{x:Bind Header, Mode=OneWay}" />
+        <ListView x:Name="TocListView"
+                  ItemsSource="{x:Bind Source.FlatItems, Mode=OneWay}"
+                  RelativePanel.AlignBottomWithPanel="True"
+                  RelativePanel.AlignLeftWithPanel="True"
+                  RelativePanel.AlignRightWithPanel="True"
+                  RelativePanel.Below="HeaderPresenter"
+                  SelectionChanged="TocListView_SelectionChanged">
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="papyrus:NavPoint">
+                    <TextBlock Margin="{x:Bind Level, Mode=OneWay, Converter={StaticResource LevelToMarginConverter}}"
+                               Text="{x:Bind Text, Mode=OneWay}" />
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
     </RelativePanel>
 </UserControl>

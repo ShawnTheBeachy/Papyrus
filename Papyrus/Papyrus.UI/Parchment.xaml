@@ -1,0 +1,25 @@
+﻿<UserControl
+    x:Class="Papyrus.UI.Parchment"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Papyrus.UI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    x:Name="ThisControl"
+    d:DesignHeight="300"
+    d:DesignWidth="400">
+
+    <RelativePanel>
+        <ScrollViewer x:Name="ContentScrollViewer"
+                      RelativePanel.AlignBottomWithPanel="True"
+                      RelativePanel.AlignLeftWithPanel="True"
+                      RelativePanel.AlignRightWithPanel="True"
+                      RelativePanel.AlignTopWithPanel="True">
+            <RichTextBlock x:Name="ContentTextBlock"
+                           LineHeight="{x:Bind LineHeight, Mode=OneWay}"
+                           Padding="{x:Bind ThisControl.Padding, Mode=OneWay}"
+                           TextIndent="{x:Bind ParagraphIndentation, Mode=OneWay}" />
+        </ScrollViewer>
+    </RelativePanel>
+</UserControl>
