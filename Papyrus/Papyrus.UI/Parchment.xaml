@@ -11,15 +11,14 @@
     d:DesignWidth="400">
 
     <RelativePanel>
-        <ScrollViewer x:Name="ContentScrollViewer"
+        <FlipView x:Name="MainFlipView"
                       RelativePanel.AlignBottomWithPanel="True"
                       RelativePanel.AlignLeftWithPanel="True"
                       RelativePanel.AlignRightWithPanel="True"
-                      RelativePanel.AlignTopWithPanel="True">
-            <RichTextBlock x:Name="ContentTextBlock"
+                      RelativePanel.AlignTopWithPanel="True" />
+        <!--<RichTextBlock x:Name="ContentTextBlock"
                            LineHeight="{x:Bind LineHeight, Mode=OneWay}"
                            Padding="{x:Bind ThisControl.Padding, Mode=OneWay}"
-                           TextIndent="{x:Bind ParagraphIndentation, Mode=OneWay}" />
-        </ScrollViewer>
+                           TextIndent="{x:Bind ParagraphIndentation, Mode=OneWay}" />-->
     </RelativePanel>
 </UserControl>
