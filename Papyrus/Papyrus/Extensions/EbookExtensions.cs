@@ -39,7 +39,9 @@ namespace Papyrus
 
         public static async Task<string> GetContentsAsync(this EBook ebook, NavPoint navPoint)
         {
-            var manifestItem = ebook.Manifest.FirstOrDefault(a => Path.GetFileName(a.Value.ContentLocation) == Path.GetFileName(navPoint.ContentPath)).Value;
+            var hashRegex = new Regex(@"(?<=.html)(#.*)");
+
+            var manifestItem = ebook.Manifest.FirstOrDefault(a => hashRegex.Replace(Path.GetFileName(a.Value.ContentLocation), string.Empty) == hashRegex.Replace(Path.GetFileName(navPoint.ContentPath), string.Empty)).Value;
             return await ebook.GetContentsAsync(manifestItem);
         }
 
