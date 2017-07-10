@@ -39,9 +39,7 @@ namespace Papyrus
 
         public static async Task<string> GetContentsAsync(this EBook ebook, NavPoint navPoint)
         {
-            var hashRegex = new Regex(@"(?<=.html)(#.*)");
-
-            var manifestItem = ebook.Manifest.FirstOrDefault(a => hashRegex.Replace(Path.GetFileName(a.Value.ContentLocation), string.Empty) == hashRegex.Replace(Path.GetFileName(navPoint.ContentPath), string.Empty)).Value;
+            var manifestItem = ebook.Manifest.FirstOrDefault(a => Path.GetFileName(a.Value.ContentLocation) == Path.GetFileName(navPoint.ContentPath)).Value;
             return await ebook.GetContentsAsync(manifestItem);
         }
 
@@ -209,6 +207,7 @@ namespace Papyrus
         /// <returns></returns>
         internal static async Task<TableOfContents> GetTableOfContentsAsync(this EBook ebook)
         {
+            var hashRegex = new Regex(@"(?<=.html)(#.*)");
             var relativeLocation = ebook.Manifest[ebook.Spine.Toc].ContentLocation;
             var tocFile = await ebook._rootFolder.GetFileFromPathAsync(Path.Combine(Path.GetDirectoryName(ebook.ContentLocation), relativeLocation));
             var xml = await FileIO.ReadTextAsync(tocFile);
@@ -231,7 +230,7 @@ namespace Papyrus
                 {
                     var navPoint = new NavPoint
                     {
-                        ContentPath = navPointNode.Element(ns + "content")?.Attribute("src").Value,
+                        ContentPath = hashRegex.Replace(navPointNode.Element(ns + "content")?.Attribute("src").Value, string.Empty),
                         Id = navPointNode.Attribute("id")?.Value,
                         Level = level,
                         PlayOrder = int.Parse(navPointNode.Attribute("playOrder")?.Value),

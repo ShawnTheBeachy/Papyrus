@@ -4,21 +4,23 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.UI;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Documents;
+using Windows.UI.Xaml.Media;
 
 namespace Papyrus.UI
 {
     public sealed partial class Parchment : UserControl
     {
         private SpineItem _currentSpineItem;
-        private Binding _paddingBinding, _lineHeightBinding, _indentationBinding;
+        private Binding _paddingBinding, _lineHeightBinding, _indentationBinding, _foregroundBinding;
 
         #region Dependency properties
-
+        
         #region IsBusy
 
         public bool IsBusy
@@ -26,7 +28,7 @@ namespace Papyrus.UI
             get { return (bool)GetValue(IsBusyProperty); }
             set { SetValue(IsBusyProperty, value); }
         }
-        
+
         public static readonly DependencyProperty IsBusyProperty = DependencyProperty.Register("IsBusy", typeof(bool), typeof(Parchment), new PropertyMetadata(false));
 
         #endregion IsBusy
@@ -82,6 +84,14 @@ namespace Papyrus.UI
                 TargetNullValue = new Thickness(24),
                 Source = this,
                 Path = new PropertyPath("Padding"),
+                Mode = BindingMode.OneWay
+            };
+            _foregroundBinding = new Binding
+            {
+                FallbackValue = new SolidColorBrush(Colors.Black),
+                TargetNullValue = new SolidColorBrush(Colors.Black),
+                Source = this,
+                Path = new PropertyPath("Foreground"),
                 Mode = BindingMode.OneWay
             };
             _lineHeightBinding = new Binding
@@ -143,6 +153,7 @@ namespace Papyrus.UI
             ContentTextBlock.SetBinding(RichTextBlock.PaddingProperty, _paddingBinding);
             ContentTextBlock.SetBinding(RichTextBlock.LineHeightProperty, _lineHeightBinding);
             ContentTextBlock.SetBinding(RichTextBlock.TextIndentProperty, _indentationBinding);
+            ContentTextBlock.SetBinding(RichTextBlock.ForegroundProperty, _foregroundBinding);
 
             foreach (var block in blocks)
                 ContentTextBlock.Blocks.Add(block);
@@ -152,10 +163,10 @@ namespace Papyrus.UI
             if (MainFlipView.Items.FirstOrDefault() is FlipViewItem)
                 MainFlipView.SelectedIndex = 1;
 
-            await Overflow(ContentTextBlock);
+            await OverflowAsync(ContentTextBlock);
         }
 
-        private async Task Overflow(RichTextBlock rtb)
+        private async Task OverflowAsync(RichTextBlock rtb)
         {
             async Task Flow()
             {
@@ -286,8 +297,7 @@ namespace Papyrus.UI
                 {
                     // Load the previous spine item.
                     await LoadContentAsync(Source.Spine[previousIndex]);
-
-                    MainFlipView.SelectedItem = MainFlipView.Items.LastOrDefault();
+                    MainFlipView.SelectedItem = MainFlipView.Items.LastOrDefault();     // TODO: This get called before all pages have finished overflowing.
                 }
             }
         }
