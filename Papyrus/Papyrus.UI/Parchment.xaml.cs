@@ -111,7 +111,8 @@ namespace Papyrus.UI
             var contents = await Source.GetContentsAsync(navPoint);
             var converter = new Converter();
             converter.Convert(contents);
-            BuildView(converter.ConvertedBlocks);
+            await BuildViewAsync(converter.ConvertedBlocks);
+            IsBusy = false;
         }
 
         public async Task LoadContentAsync(SpineItem spineItem)
@@ -121,13 +122,20 @@ namespace Papyrus.UI
             var contents = await Source.GetContentsAsync(spineItem);
             var converter = new Converter();
             converter.Convert(contents);
-            BuildView(converter.ConvertedBlocks);
+            await BuildViewAsync(converter.ConvertedBlocks);
+            IsBusy = false;
         }
 
-        private void BuildView(IEnumerable<Block> blocks)
+        private async Task BuildViewAsync(IEnumerable<Block> blocks)
         {
             MainFlipView.ItemsSource = null;
             MainFlipView.Items.Clear();
+
+            var previousIndex = Source.Spine.IndexOf(_currentSpineItem) - 1;
+
+            if (previousIndex >= 0)
+                MainFlipView.Items.Add(new FlipViewItem());
+
             var ContentTextBlock = new RichTextBlock
             {
                 IsTextSelectionEnabled = false
@@ -139,24 +147,26 @@ namespace Papyrus.UI
             foreach (var block in blocks)
                 ContentTextBlock.Blocks.Add(block);
 
-            Overflow(ContentTextBlock);
             MainFlipView.Items.Add(ContentTextBlock);
-            IsBusy = false;
+
+            if (MainFlipView.Items.FirstOrDefault() is FlipViewItem)
+                MainFlipView.SelectedIndex = 1;
+
+            await Overflow(ContentTextBlock);
         }
 
-        private async void Overflow(RichTextBlock rtb)
+        private async Task Overflow(RichTextBlock rtb)
         {
             async Task Flow()
             {
                 if (rtb.HasOverflowContent && rtb.OverflowContentTarget == null)
                 {
-                    var index = MainFlipView.Items.IndexOf(rtb);
                     var target = new RichTextBlockOverflow();
                     target.SetBinding(RichTextBlockOverflow.PaddingProperty, _paddingBinding);
                     rtb.OverflowContentTarget = target;
                     await CoreWindow.GetForCurrentThread().Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
-                        MainFlipView.Items.Insert(index + 1, target);
+                        MainFlipView.Items.Add(target);
                     });
                     await OverflowAsync(target);
                 }
@@ -180,34 +190,18 @@ namespace Papyrus.UI
             });
         }
 
-        private async void MainFlipView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (MainFlipView.SelectedIndex == MainFlipView.Items.Count - 2 && !(MainFlipView.Items.LastOrDefault() is FlipViewItem))
-            {
-                // We're on the next to last page. Tell the FlipView it can go further.
-                MainFlipView.Items.Add(new FlipViewItem());
-            }
-
-            else if (MainFlipView.SelectedIndex == MainFlipView.Items.Count - 1 && MainFlipView.SelectedItem is FlipViewItem)
-            {
-                var currentIndex = Source.Spine.IndexOf(_currentSpineItem);
-                await LoadContentAsync(Source.Spine[++currentIndex]);
-            }
-        }
-
         private async Task OverflowAsync(RichTextBlockOverflow rtb)
         {
             async Task Flow()
             {
                 if (rtb.HasOverflowContent && rtb.OverflowContentTarget == null)
                 {
-                    var index = MainFlipView.Items.IndexOf(rtb);
                     var target = new RichTextBlockOverflow();
                     target.SetBinding(RichTextBlockOverflow.PaddingProperty, _paddingBinding);
                     rtb.OverflowContentTarget = target;
                     await CoreWindow.GetForCurrentThread().Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
-                        MainFlipView.Items.Insert(index + 1, target);
+                        MainFlipView.Items.Add(target);
                     });
                     await OverflowAsync(target);
                 }
@@ -246,6 +240,56 @@ namespace Papyrus.UI
             }
 
             await Flow();
+        }
+
+        private async void MainFlipView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (IsBusy)
+                return;
+
+            if (MainFlipView.SelectedIndex == MainFlipView.Items.Count - 1)
+            {
+                // We're on the last page.
+                var nextIndex = Source.Spine.IndexOf(_currentSpineItem) + 1;
+
+                if (nextIndex > Source.Spine.Count - 1)
+                    return;
+
+                if (!(MainFlipView.SelectedItem is FlipViewItem))
+                {
+                    // Tell the FlipView it can go further.
+                    MainFlipView.Items.Add(new FlipViewItem());
+                }
+
+                else
+                {
+                    // Load the next spine item.
+                    await LoadContentAsync(Source.Spine[nextIndex]);
+                }
+            }
+
+            else if (MainFlipView.SelectedIndex == 0)
+            {
+                // We're on the first page.
+                var previousIndex = Source.Spine.IndexOf(_currentSpineItem) - 1;
+
+                if (previousIndex < 0)
+                    return;
+
+                if (!(MainFlipView.SelectedItem is FlipViewItem))
+                {
+                    // Tell the FlipView it can go further.
+                    MainFlipView.Items.Insert(0, new FlipViewItem());
+                }
+
+                else
+                {
+                    // Load the previous spine item.
+                    await LoadContentAsync(Source.Spine[previousIndex]);
+
+                    MainFlipView.SelectedItem = MainFlipView.Items.LastOrDefault();
+                }
+            }
         }
     }
 }
