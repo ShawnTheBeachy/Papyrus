@@ -1,23 +1,35 @@
 ﻿using Papyrus.HtmlParser;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using Windows.ApplicationModel.Core;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Data;
+using Windows.UI.Xaml.Documents;
 
 namespace Papyrus.UI
 {
     public sealed partial class Parchment : UserControl
     {
+        private SpineItem _currentSpineItem;
         private Binding _paddingBinding, _lineHeightBinding, _indentationBinding;
 
         #region Dependency properties
+
+        #region IsBusy
+
+        public bool IsBusy
+        {
+            get { return (bool)GetValue(IsBusyProperty); }
+            set { SetValue(IsBusyProperty, value); }
+        }
+        
+        public static readonly DependencyProperty IsBusyProperty = DependencyProperty.Register("IsBusy", typeof(bool), typeof(Parchment), new PropertyMetadata(false));
+
+        #endregion IsBusy
 
         #region LineHeight
 
@@ -92,21 +104,44 @@ namespace Papyrus.UI
 
         public async Task LoadContentAsync(NavPoint navPoint)
         {
-            MainFlipView.ItemsSource = null;
-            var ContentTextBlock = new RichTextBlock();
-            ContentTextBlock.SetBinding(RichTextBlock.PaddingProperty, _paddingBinding);
-            ContentTextBlock.SetBinding(RichTextBlock.LineHeightProperty, _lineHeightBinding);
-            ContentTextBlock.SetBinding(RichTextBlock.TextIndentProperty, _indentationBinding);
+            IsBusy = true;
+            var manifestItem = Source.Manifest.FirstOrDefault(a => Path.GetFileName(a.Value.ContentLocation) == Path.GetFileName(navPoint.ContentPath));
+            _currentSpineItem = Source.Spine.FirstOrDefault(a => a.IdRef == manifestItem.Key);
 
             var contents = await Source.GetContentsAsync(navPoint);
             var converter = new Converter();
             converter.Convert(contents);
-            
-            foreach (var block in converter.ConvertedBlocks)
+            BuildView(converter.ConvertedBlocks);
+        }
+
+        public async Task LoadContentAsync(SpineItem spineItem)
+        {
+            IsBusy = true;
+            _currentSpineItem = spineItem;
+            var contents = await Source.GetContentsAsync(spineItem);
+            var converter = new Converter();
+            converter.Convert(contents);
+            BuildView(converter.ConvertedBlocks);
+        }
+
+        private void BuildView(IEnumerable<Block> blocks)
+        {
+            MainFlipView.ItemsSource = null;
+            MainFlipView.Items.Clear();
+            var ContentTextBlock = new RichTextBlock
+            {
+                IsTextSelectionEnabled = false
+            };
+            ContentTextBlock.SetBinding(RichTextBlock.PaddingProperty, _paddingBinding);
+            ContentTextBlock.SetBinding(RichTextBlock.LineHeightProperty, _lineHeightBinding);
+            ContentTextBlock.SetBinding(RichTextBlock.TextIndentProperty, _indentationBinding);
+
+            foreach (var block in blocks)
                 ContentTextBlock.Blocks.Add(block);
 
             Overflow(ContentTextBlock);
             MainFlipView.Items.Add(ContentTextBlock);
+            IsBusy = false;
         }
 
         private async void Overflow(RichTextBlock rtb)
@@ -143,6 +178,21 @@ namespace Papyrus.UI
             {
                 await Flow();
             });
+        }
+
+        private async void MainFlipView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (MainFlipView.SelectedIndex == MainFlipView.Items.Count - 2 && !(MainFlipView.Items.LastOrDefault() is FlipViewItem))
+            {
+                // We're on the next to last page. Tell the FlipView it can go further.
+                MainFlipView.Items.Add(new FlipViewItem());
+            }
+
+            else if (MainFlipView.SelectedIndex == MainFlipView.Items.Count - 1 && MainFlipView.SelectedItem is FlipViewItem)
+            {
+                var currentIndex = Source.Spine.IndexOf(_currentSpineItem);
+                await LoadContentAsync(Source.Spine[++currentIndex]);
+            }
         }
 
         private async Task OverflowAsync(RichTextBlockOverflow rtb)

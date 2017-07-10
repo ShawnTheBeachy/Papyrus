@@ -16,17 +16,18 @@
                   RelativePanel.AlignBottomWithPanel="True"
                   RelativePanel.AlignLeftWithPanel="True"
                   RelativePanel.AlignRightWithPanel="True"
-                  RelativePanel.AlignTopWithPanel="True">
+                  RelativePanel.AlignTopWithPanel="True"
+                  SelectionChanged="MainFlipView_SelectionChanged">
             <FlipView.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Horizontal" />
                 </ItemsPanelTemplate>
             </FlipView.ItemsPanel>
-            
         </FlipView>
-        <!--<RichTextBlock x:Name="ContentTextBlock"
-                           LineHeight="{x:Bind LineHeight, Mode=OneWay}"
-                           Padding="{x:Bind ThisControl.Padding, Mode=OneWay}"
-                           TextIndent="{x:Bind ParagraphIndentation, Mode=OneWay}" />-->
+        <ProgressRing Height="24"
+                      IsActive="{x:Bind IsBusy, Mode=OneWay}"
+                      RelativePanel.AlignHorizontalCenterWithPanel="True"
+                      RelativePanel.AlignVerticalCenterWithPanel="True"
+                      Width="24" />
     </RelativePanel>
 </UserControl>

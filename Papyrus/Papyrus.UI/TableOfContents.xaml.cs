@@ -52,6 +52,8 @@ namespace Papyrus.UI
 
         #endregion Dependency properties
 
+        public event SelectionChangedEventHandler SelectionChanged;
+
         public TableOfContents()
         {
             InitializeComponent();
@@ -59,8 +61,10 @@ namespace Papyrus.UI
 
         private async void TocListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            //SelectionChanged?.Invoke(sender, e);
-            await Parchment?.LoadContentAsync(e.AddedItems.FirstOrDefault() as NavPoint);
+            SelectionChanged?.Invoke(sender, e);
+
+            if (Parchment != null)
+                await Parchment.LoadContentAsync(e.AddedItems.FirstOrDefault() as NavPoint);
         }
     }
 
@@ -72,6 +76,22 @@ namespace Papyrus.UI
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language) => 
+            throw new NotImplementedException();
+    }
+
+    public class ChapterPrependConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            var s = value.ToString().Trim();
+
+            if (s.Where(a => !char.IsNumber(a)).Count() == 0)
+                return $"Chapter {s}";
+            else
+                return value;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language) =>
             throw new NotImplementedException();
     }
 }

@@ -12,6 +12,7 @@
 
     <UserControl.Resources>
         <local:LevelToMarginConverter x:Key="LevelToMarginConverter" />
+        <local:ChapterPrependConverter x:Key="ChapterPrependConverter" />
     </UserControl.Resources>
 
     <RelativePanel>
@@ -27,7 +28,7 @@
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="papyrus:NavPoint">
                     <TextBlock Margin="{x:Bind Level, Mode=OneWay, Converter={StaticResource LevelToMarginConverter}}"
-                               Text="{x:Bind Text, Mode=OneWay}" />
+                               Text="{x:Bind Text, Mode=OneWay, Converter={StaticResource ChapterPrependConverter}}" />
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
