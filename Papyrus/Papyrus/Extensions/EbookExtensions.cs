@@ -21,13 +21,33 @@ namespace Papyrus
         /// <param name="ebook"></param>
         /// <param name="navPoint"></param>
         /// <returns></returns>
-        public static async Task<string> GetContentsAsync(this EBook ebook, ManifestItem manifestItem)
+        public static async Task<string> GetContentsAsync(this EBook ebook, ManifestItem manifestItem, bool embedImages = true)
         {
             var fullContentPath = Path.GetFullPath(ebook._rootFolder.Path.EnsureEnd("\\") + ebook.ContentLocation);
             var tocPath = Path.GetFullPath(Path.GetDirectoryName(fullContentPath).EnsureEnd("\\") + ebook.Manifest["ncx"].ContentLocation);
             var filePath = Path.GetFullPath(Path.GetDirectoryName(tocPath).EnsureEnd("\\") + manifestItem.ContentLocation);
             var contentFile = await ebook._rootFolder.GetFileFromPathAsync(filePath.Substring(ebook._rootFolder.Path.Length));
             var contents = await FileIO.ReadTextAsync(contentFile);
+
+            if (embedImages)
+            {
+                var contentPath = Path.Combine(ebook._rootFolder.Path, manifestItem.ContentLocation);
+                var imageMatches = new Regex(@"<img.*/>", RegexOptions.IgnoreCase).Matches(contents).OfType<Match>().ToList();
+
+                foreach (var match in imageMatches)
+                {
+                    var imageNode = HtmlNode.CreateNode(match.Value);
+                    var imageSource = imageNode.Attributes["src"].Value;
+
+                    var imgPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(contentPath), imageSource));
+                    var imageFile = await ebook._rootFolder.GetFileFromPathAsync(imgPath.Substring(ebook._rootFolder.Path.Length));
+                    var image = await FileIO.ReadBufferAsync(imageFile);
+                    var base64 = Convert.ToBase64String(image.ToArray());
+                    imageNode.Attributes["src"].Value = $"data:image/{imageFile.FileType};base64,{base64}";
+                    contents = contents.Replace(match.Value, imageNode.OuterHtml);
+                }
+            }
+
             return contents;
         }
 
