@@ -99,7 +99,8 @@ You're all set! you should now be able to display your eBook's content. For more
 
 ## Available properties and methods
 
-[Papyrus](#papyrus)
+- [Papyrus](#papyrus)
+  - [EBook](#ebook)
 
 ### Papyrus
 
@@ -111,4 +112,20 @@ Properties and methods in the `EBook` class.
 
 ##### Properties
 
-**ContentLocation:** A relative path to the `content.opf` file.
+**ContentLocation (String):** A relative path to the `content.opf` file.
+
+**Cover (ImageSource):** An `ImageSource` object with the eBook cover.
+
+**Manifest ([Manifest](#manifest)):** The `Manifest` object for this eBook.
+
+**Metadata ([Metadata](#metadata)):** The `Metadata` object for this eBook.
+
+**RootPath (String):** An absolute path to the eBook's root folder.
+
+**Spine ([Spine](#spine)):** The `Spine` object for this eBook.
+
+**TableOfContents ([TableOfContents](#tableofcontents)):** The `TableOfContents` object for this eBook.
+
+#### Methods
+
+**InitializeAsync():** Initializes the `EBook`, verifying the mimetype and loading the `[Metadata](#metadata)`, `[Manifest](#manifest)`, `[Spine](#spine)`, `[TableOfContents](#tableofcontents)` and `Cover`.
