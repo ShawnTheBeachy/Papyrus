@@ -110,13 +110,13 @@ Components in the `Papyrus` library.
 
 Properties and methods in the `EBook` class.
 
-##### Properties
+#### Properties
 
 **ContentLocation (String):** A relative path to the `content.opf` file.
 
 **Cover (ImageSource):** An `ImageSource` object with the eBook cover.
 
-**Manifest ([Manifest](#manifest)):** The `Manifest` object for this eBook.
+**Manifest (Dictionary<string, [ManifestItem](#manifestitem)>):** The `Manifest` object for this eBook.
 
 **Metadata ([Metadata](#metadata)):** The `Metadata` object for this eBook.
 
@@ -128,4 +128,6 @@ Properties and methods in the `EBook` class.
 
 #### Methods
 
-**InitializeAsync():** Initializes the `EBook`, verifying the mimetype and loading the `[Metadata](#metadata)`, `[Manifest](#manifest)`, `[Spine](#spine)`, `[TableOfContents](#tableofcontents)` and `Cover`.
+**InitializeAsync():** Initializes the `EBook`, verifying the mimetype and loading the [Metadata](#metadata), `Manifest`, [Spine](#spine), [TableOfContents](#tableofcontents) and `Cover`.
+
+#### Manifest
