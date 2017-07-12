@@ -101,6 +101,7 @@ You're all set! you should now be able to display your eBook's content. For more
 
 - [Papyrus](#papyrus)
   - [EBook](#ebook)
+  - [ManifestItem](#manifestitem)
 
 ### Papyrus
 
