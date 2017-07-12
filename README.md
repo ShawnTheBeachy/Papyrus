@@ -130,4 +130,17 @@ Properties and methods in the `EBook` class.
 
 **InitializeAsync():** Initializes the `EBook`, verifying the mimetype and loading the [Metadata](#metadata), `Manifest`, [Spine](#spine), [TableOfContents](#tableofcontents) and `Cover`.
 
-#### Manifest
+#### ManifestItem
+
+Properties and methods in the `ManifestItem` class.
+
+#### Properties
+
+**ContentLocation (string):** A relative path to the content to which this `ManifestItem` points.
+
+**Id (string):** The identifier for this `ManifestItem`.
+
+**MediaType (string):** The type of media to which this `ManifestItem` points.
+
+#### Metadata
+
