@@ -149,10 +149,6 @@ namespace Papyrus.UI
 
         public async Task LoadContentAsync(SpineItem spineItem)
         {
-#if DEBUG
-            Debug.WriteLine($"Loading spine item {spineItem.IdRef}.");            
-#endif
-
             _currentSpineItem = spineItem;
             var contents = await Source.GetContentsAsync(spineItem);
 
@@ -166,9 +162,6 @@ namespace Papyrus.UI
             }
             
             _converter.Convert(contents, css);
-#if DEBUG
-            Debug.WriteLine($"Finished loading spine item {spineItem.IdRef}.");
-#endif
         }
 
         private IEnumerable<string> GetStylesheetLocations(string html, string relativePath)
@@ -199,7 +192,6 @@ namespace Papyrus.UI
             var nextIndex = currentIndex + 1;
 
             Provider.CreateFromBlocks(_converter.ConvertedBlocks, _bindings, previousIndex >= 0, nextIndex < Source.Spine.Count);
-            MainFlipView.SelectedIndex = 1;
         }
         
         private async void MainFlipView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -217,6 +209,7 @@ namespace Papyrus.UI
                     IsBusy = true;
                     await LoadContentAsync(Source.Spine[nextIndex]);
                     BuildView();
+                    MainFlipView.SelectedIndex = 1;
                     IsBusy = false;
                 }
             }
@@ -232,10 +225,15 @@ namespace Papyrus.UI
                     IsBusy = true;
                     await LoadContentAsync(Source.Spine[previousIndex]);
                     BuildView();
-                    MainFlipView.SelectedItem = MainFlipView.Items.Where(a => !(a is FlipViewItem)).LastOrDefault();
+                    MainFlipView.SelectedIndex = MainFlipView.Items.Count - 2;
                     IsBusy = false;
                 }
             }
+        }
+
+        public void SelectPage(int index)
+        {
+            MainFlipView.SelectedIndex = index;
         }
     }
 }

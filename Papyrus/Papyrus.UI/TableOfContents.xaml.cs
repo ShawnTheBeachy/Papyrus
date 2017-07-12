@@ -64,7 +64,13 @@ namespace Papyrus.UI
             SelectionChanged?.Invoke(sender, e);
 
             if (Parchment != null)
+            {
+                Parchment.IsBusy = true;
                 await Parchment.LoadContentAsync(e.AddedItems.FirstOrDefault() as NavPoint);
+                Parchment.BuildView();
+                Parchment.SelectPage(1);
+                Parchment.IsBusy = false;
+            }
         }
     }
 
