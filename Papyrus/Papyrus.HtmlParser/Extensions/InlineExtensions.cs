@@ -7,10 +7,10 @@ namespace Papyrus.HtmlParser.Extensions
     {
         public static void ApplyStyle(this Inline inline, Style style)
         {
-            inline.FontSize = style.FontSize;
-            inline.FontStyle = style.FontStyle;
-            inline.FontWeight = style.FontWeight;
-            inline.Foreground = style.Foreground != null ? new SolidColorBrush(style.Foreground) : null;
+            inline.FontSize = style.FontSize.Value;
+            inline.FontStyle = style.FontStyle.Value;
+            inline.FontWeight = style.FontWeight.Value;
+            inline.Foreground = style.Foreground != null ? new SolidColorBrush(style.Foreground.Value) : null;
         }
     }
 }

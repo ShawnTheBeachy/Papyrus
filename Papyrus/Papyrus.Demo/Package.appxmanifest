@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="8deda8cb-5dee-49de-a6c9-a2ba976a737e" Publisher="CN=Shawn" Version="1.0.1.0" />
+  <Identity Name="8deda8cb-5dee-49de-a6c9-a2ba976a737e" Publisher="CN=Shawn" Version="1.0.3.0" />
   <mp:PhoneIdentity PhoneProductId="8deda8cb-5dee-49de-a6c9-a2ba976a737e" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>Papyrus.Demo</DisplayName>

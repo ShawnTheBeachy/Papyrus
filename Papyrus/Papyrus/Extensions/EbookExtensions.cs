@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -21,17 +22,18 @@ namespace Papyrus
         /// <param name="ebook"></param>
         /// <param name="navPoint"></param>
         /// <returns></returns>
-        public static async Task<string> GetContentsAsync(this EBook ebook, NavPoint navPoint, bool embedImages = true)
+        public static async Task<string> GetContentsAsync(this EBook ebook, ManifestItem manifestItem, bool embedImages = true)
         {
             var fullContentPath = Path.GetFullPath(ebook._rootFolder.Path.EnsureEnd("\\") + ebook.ContentLocation);
             var tocPath = Path.GetFullPath(Path.GetDirectoryName(fullContentPath).EnsureEnd("\\") + ebook.Manifest["ncx"].ContentLocation);
-            var filePath = Path.GetFullPath(Path.GetDirectoryName(tocPath).EnsureEnd("\\") + navPoint.ContentPath);
-            var contentFile = await navPoint._rootFolder.GetFileFromPathAsync(filePath.Substring(navPoint._rootFolder.Path.Length));
+            var filePath = Path.GetFullPath(Path.GetDirectoryName(tocPath).EnsureEnd("\\") + manifestItem.ContentLocation);
+            var contentFile = await ebook._rootFolder.GetFileFromPathAsync(filePath.Substring(ebook._rootFolder.Path.Length));
             var contents = await FileIO.ReadTextAsync(contentFile);
+            contents = WebUtility.HtmlDecode(contents);
 
             if (embedImages)
             {
-                var contentPath = Path.Combine(navPoint._rootFolder.Path, navPoint.ContentPath);
+                var contentPath = Path.Combine(ebook._rootFolder.Path, manifestItem.ContentLocation);
                 var imageMatches = new Regex(@"<img.*/>", RegexOptions.IgnoreCase).Matches(contents).OfType<Match>().ToList();
 
                 foreach (var match in imageMatches)
@@ -40,7 +42,7 @@ namespace Papyrus
                     var imageSource = imageNode.Attributes["src"].Value;
 
                     var imgPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(contentPath), imageSource));
-                    var imageFile = await navPoint._rootFolder.GetFileFromPathAsync(imgPath.Substring(navPoint._rootFolder.Path.Length));
+                    var imageFile = await ebook._rootFolder.GetFileFromPathAsync(imgPath.Substring(ebook._rootFolder.Path.Length));
                     var image = await FileIO.ReadBufferAsync(imageFile);
                     var base64 = Convert.ToBase64String(image.ToArray());
                     imageNode.Attributes["src"].Value = $"data:image/{imageFile.FileType};base64,{base64}";
@@ -50,7 +52,19 @@ namespace Papyrus
 
             return contents;
         }
-        
+
+        public static async Task<string> GetContentsAsync(this EBook ebook, SpineItem spineItem)
+        {
+            var manifestItem = ebook.Manifest[spineItem.IdRef];
+            return await ebook.GetContentsAsync(manifestItem);
+        }
+
+        public static async Task<string> GetContentsAsync(this EBook ebook, NavPoint navPoint)
+        {
+            var manifestItem = ebook.Manifest.FirstOrDefault(a => Path.GetFileName(a.Value.ContentLocation) == Path.GetFileName(navPoint.ContentPath)).Value;
+            return await ebook.GetContentsAsync(manifestItem);
+        }
+
         /// <summary>
         /// Gets the location of the content.opf file.
         /// </summary>
@@ -102,6 +116,11 @@ namespace Papyrus
             var bitmap = new BitmapImage();
             bitmap.SetSource(stream);
             return bitmap;
+        }
+
+        public static async Task<StorageFile> GetFileAsync(this EBook ebook, string path)
+        {
+            return await ebook._rootFolder.GetFileFromPathAsync(path.Substring(ebook._rootFolder.Path.Length));
         }
 
         /// <summary>
@@ -215,6 +234,7 @@ namespace Papyrus
         /// <returns></returns>
         internal static async Task<TableOfContents> GetTableOfContentsAsync(this EBook ebook)
         {
+            var hashRegex = new Regex(@"(?<=.html)(#.*)");
             var relativeLocation = ebook.Manifest[ebook.Spine.Toc].ContentLocation;
             var tocFile = await ebook._rootFolder.GetFileFromPathAsync(Path.Combine(Path.GetDirectoryName(ebook.ContentLocation), relativeLocation));
             var xml = await FileIO.ReadTextAsync(tocFile);
@@ -228,7 +248,7 @@ namespace Papyrus
 
             var navMapNode = doc.Element(ns + "ncx").Element(ns + "navMap");
 
-            IEnumerable<NavPoint> ParseNavPoints(XElement node)
+            IEnumerable<NavPoint> ParseNavPoints(XElement node, int level)
             {
                 var navPoints = new List<NavPoint>();
                 var navPointNodes = node.Elements(ns + "navPoint").ToList();
@@ -237,14 +257,14 @@ namespace Papyrus
                 {
                     var navPoint = new NavPoint
                     {
-                        ContentPath = navPointNode.Element(ns + "content").Attribute("src").Value,
-                        Id = navPointNode.Attribute("id").Value,
-                        PlayOrder = int.Parse(navPointNode.Attribute("playOrder").Value),
-                        _rootFolder = ebook._rootFolder,
-                        Text = navPointNode.Element(ns + "navLabel").Element(ns + "text").Value
+                        ContentPath = hashRegex.Replace(navPointNode.Element(ns + "content")?.Attribute("src").Value, string.Empty),
+                        Id = navPointNode.Attribute("id")?.Value,
+                        Level = level,
+                        PlayOrder = int.Parse(navPointNode.Attribute("playOrder")?.Value),
+                        Text = navPointNode.Element(ns + "navLabel")?.Element(ns + "text")?.Value
                     };
 
-                    foreach (var subNavPoint in ParseNavPoints(navPointNode).ToList())
+                    foreach (var subNavPoint in ParseNavPoints(navPointNode, level + 1).ToList())
                         navPoint.Items.Add(subNavPoint);
 
                     navPoints.Add(navPoint);
@@ -253,7 +273,7 @@ namespace Papyrus
                 return navPoints;
             }
 
-            foreach (var navPoint in ParseNavPoints(navMapNode).ToList())
+            foreach (var navPoint in ParseNavPoints(navMapNode, 0).ToList())
                 tableOfContents.Items.Add(navPoint);
 
             return tableOfContents;

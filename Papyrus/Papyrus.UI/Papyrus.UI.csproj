@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B14BD7C5-CC0D-468E-8AC4-F3F6E8E84382}</ProjectGuid>
+    <ProjectGuid>{0F312EA9-696F-4BEA-968D-DE6AE88CFF34}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Papyrus.HtmlParser</RootNamespace>
-    <AssemblyName>Papyrus.HtmlParser</AssemblyName>
+    <RootNamespace>Papyrus.UI</RootNamespace>
+    <AssemblyName>Papyrus.UI</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.15063.0</TargetPlatformVersion>
@@ -106,23 +106,41 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Converter.cs" />
-    <Compile Include="CssHelpers.cs" />
-    <Compile Include="Extensions\BlockExtensions.cs" />
-    <Compile Include="Extensions\DictionaryExtensions.cs" />
-    <Compile Include="Extensions\HtmlNodeExtensions.cs" />
-    <Compile Include="Extensions\InlineCollectionExtensions.cs" />
-    <Compile Include="Extensions\InlineExtensions.cs" />
+    <Compile Include="PageProvider.cs" />
+    <Compile Include="Parchment.xaml.cs">
+      <DependentUpon>Parchment.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Properties\Papyrus.HtmlParser.rd.xml" />
+    <Compile Include="StringExtensions.cs" />
+    <Compile Include="TableOfContents.xaml.cs">
+      <DependentUpon>TableOfContents.xaml</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="Properties\Papyrus.UI.rd.xml" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="HtmlAgilityPack.NetCore">
-      <Version>1.5.0.1</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
-      <Version>5.3.3</Version>
+      <Version>5.2.3</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Papyrus.HtmlParser\Papyrus.HtmlParser.csproj">
+      <Project>{B14BD7C5-CC0D-468E-8AC4-F3F6E8E84382}</Project>
+      <Name>Papyrus.HtmlParser</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Papyrus\Papyrus.csproj">
+      <Project>{c1f475d6-dad4-4738-961b-12c42c14d90e}</Project>
+      <Name>Papyrus</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Parchment.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TableOfContents.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

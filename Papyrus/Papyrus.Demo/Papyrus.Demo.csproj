@@ -148,6 +148,10 @@
       <Project>{B14BD7C5-CC0D-468E-8AC4-F3F6E8E84382}</Project>
       <Name>Papyrus.HtmlParser</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Papyrus.UI\Papyrus.UI.csproj">
+      <Project>{0f312ea9-696f-4bea-968d-de6ae88cff34}</Project>
+      <Name>Papyrus.UI</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Papyrus\Papyrus.csproj">
       <Project>{c1f475d6-dad4-4738-961b-12c42c14d90e}</Project>
       <Name>Papyrus</Name>
