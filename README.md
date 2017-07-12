@@ -131,6 +131,12 @@ Properties and methods in the `EBook` class.
 
 **InitializeAsync():** Initializes the `EBook`, verifying the mimetype and loading the [Metadata](#metadata), `Manifest`, [Spine](#spine), [TableOfContents](#tableofcontents) and `Cover`.
 
+**GetContentsAsync(ManifestItem|SpineItem|NavPoint, bool embedImages = true):** An extension method which gets HTML content for a resource. If `embedImages` is `true`, images will be embedded with base64-encoded sources.
+
+**GetFileAsync(string path):** An extension method which takes an absolute path to a file which is in the eBook's root folder and returns the file.
+
+**GetSpineItem(ManifestItem item):** Gets a [SpineItem](#spineitem) which matches the [ManifestItem](#manifestitem).
+
 ### ManifestItem
 
 Properties and methods in the `ManifestItem` class.
