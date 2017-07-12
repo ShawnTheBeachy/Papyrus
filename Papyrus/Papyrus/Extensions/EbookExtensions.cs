@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -28,6 +29,7 @@ namespace Papyrus
             var filePath = Path.GetFullPath(Path.GetDirectoryName(tocPath).EnsureEnd("\\") + manifestItem.ContentLocation);
             var contentFile = await ebook._rootFolder.GetFileFromPathAsync(filePath.Substring(ebook._rootFolder.Path.Length));
             var contents = await FileIO.ReadTextAsync(contentFile);
+            contents = WebUtility.HtmlDecode(contents);
 
             if (embedImages)
             {
@@ -114,6 +116,11 @@ namespace Papyrus
             var bitmap = new BitmapImage();
             bitmap.SetSource(stream);
             return bitmap;
+        }
+
+        public static async Task<StorageFile> GetFileAsync(this EBook ebook, string path)
+        {
+            return await ebook._rootFolder.GetFileFromPathAsync(path.Substring(ebook._rootFolder.Path.Length));
         }
 
         /// <summary>

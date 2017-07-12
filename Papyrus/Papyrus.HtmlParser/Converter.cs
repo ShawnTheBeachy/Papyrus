@@ -3,18 +3,25 @@ using Papyrus.HtmlParser.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.Storage;
+using Windows.Storage.Streams;
 using Windows.UI;
 using Windows.UI.Text;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Documents;
+using Windows.UI.Xaml.Media.Imaging;
 
 namespace Papyrus.HtmlParser
 {
     public class Converter
     {
+        private Dictionary<string, Style> _cssStyles = new Dictionary<string, Style>();
         private Dictionary<string, double> _headerFontSizes = new Dictionary<string, double>
         {
             ["h1"] = 36,
@@ -27,14 +34,19 @@ namespace Papyrus.HtmlParser
         private Paragraph _currentParagraph = new Paragraph();
         public ObservableCollection<Block> ConvertedBlocks { get; set; } = new ObservableCollection<Block>();
         
-        public async Task ConvertAsync(StorageFile file)
+        public async Task ConvertAsync(StorageFile file, string css = null)
         {
-            Convert(await FileIO.ReadTextAsync(file));
+            Convert(await FileIO.ReadTextAsync(file), css);
         }
 
-        public void Convert(string html)
+        public void Convert(string html, string css = null)
         {
+            _cssStyles.Clear();
             ConvertedBlocks.Clear();
+
+            if (!string.IsNullOrWhiteSpace(css))
+                ParseCss(css);
+
             var bodyIndex = html.IndexOf("<body");
 
             if (bodyIndex > -1)
@@ -51,6 +63,30 @@ namespace Papyrus.HtmlParser
 
             if (_currentParagraph != null)
                 ConvertedBlocks.Add(_currentParagraph);
+        }
+
+        private void ParseCss(string css)
+        {
+            var classesRegex = new Regex(@"^(\.[^{]*)([^}]*)", RegexOptions.Multiline);
+            var propertyRegex = new Regex(@"([a-z-]+):\s?([^;\r\n|\r|\n]+)");
+            var classMatches = classesRegex.Matches(css).OfType<Match>();
+
+            foreach (var match in classMatches)
+            {
+                var name = match.Groups.OfType<Group>().ElementAt(1).Value.Trim().TrimStart('.');
+                var valueGroup = match.Groups.OfType<Group>().ElementAt(2);
+                var propMatches = propertyRegex.Matches(match.Value).OfType<Match>();
+                var props = new Dictionary<string, string>();
+
+                foreach (var propMatch in propMatches)
+                {
+                    var groups = propMatch.Groups.OfType<Group>();
+                    props.Add(groups.ElementAt(1).Value, groups.ElementAt(2).Value);
+                }
+
+                var style = CssHelpers.GetStyleFromCssProperties(props);
+                _cssStyles.Add(name, style);
+            }
         }
 
         #region ParseMethods
@@ -92,6 +128,9 @@ namespace Papyrus.HtmlParser
                 case "i":
                 case "em":
                     return ParseItalic(node, style);
+                case "img":
+                    ParseImage(node, style);
+                    return null;
                 case "p":
                 case "div":
                     ParseParagraph(node, style);
@@ -118,6 +157,52 @@ namespace Papyrus.HtmlParser
             return bold;
         }
 
+        void ParseImage(HtmlNode node, Style style)
+        {
+            var container = new InlineUIContainer();
+            container.ApplyStyle(style);
+            var source = node.Attributes["src"]?.Value;
+
+            if (source == null)
+                return;
+
+            var base64Regex = new Regex(@"data:image\/.*;base64,(.*)", RegexOptions.IgnoreCase);
+            var base64Match = base64Regex.Match(source).Groups.OfType<Group>().ElementAt(1);
+
+            if (base64Match == null)
+                return;
+
+            var bytes = System.Convert.FromBase64String(base64Match.Value);
+
+            using (var ms = new InMemoryRandomAccessStream())
+            {
+                using (var writer = new DataWriter(ms.GetOutputStreamAt(0)))
+                {
+                    writer.WriteBytes(bytes);
+                    writer.StoreAsync().GetResults();
+                }
+
+                var bitmap = new BitmapImage();
+                bitmap.SetSource(ms);
+                var image = new Image
+                {
+                    MaxWidth = 300,
+                    Source = bitmap
+                };
+                container.Child = image;
+            }
+
+            ConvertedBlocks.Add(_currentParagraph);
+            _currentParagraph = new Paragraph
+            {
+                TextAlignment = TextAlignment.Center
+            };
+            _currentParagraph.Inlines.Add(container);
+            _currentParagraph.Inlines.Add(new LineBreak());
+            ConvertedBlocks.Add(_currentParagraph);
+            _currentParagraph = new Paragraph();
+        }
+
         Italic ParseItalic(HtmlNode node, Style style)
         {
             var italic = new Italic();
@@ -133,8 +218,11 @@ namespace Papyrus.HtmlParser
             return italic;
         }
 
-        Hyperlink ParseLink(HtmlNode node, Style style)
+        Span ParseLink(HtmlNode node, Style style)
         {
+            var span = new Span();
+            span.ApplyStyle(new Style(style) { TextAlignment = TextAlignment.Center });
+
             var url = node.Attributes["href"]?.Value;
             url = url == null || url.Contains("://") ? url : $"epub://{url}";
 
@@ -142,12 +230,25 @@ namespace Papyrus.HtmlParser
             {
                 NavigateUri = url == null ? null : new Uri(url, UriKind.RelativeOrAbsolute)
             };
-            hyperlink.ApplyStyle(style);
 
             foreach (var child in node.ChildNodes)
-                hyperlink.Inlines.SafeAdd(ParseNode(child, style));
+            {
+                var el = ParseNode(child, style);
 
-            return hyperlink;
+                if (!hyperlink.Inlines.SafeAdd(el) && el is LineBreak lineBreak)
+                {
+                    span.Inlines.Add(hyperlink);
+                    span.Inlines.Add(el);
+                    hyperlink = new Hyperlink
+                    {
+                        NavigateUri = url == null ? null : new Uri(url, UriKind.RelativeOrAbsolute),
+                    };
+                }
+            }
+
+            span.Inlines.Add(hyperlink);
+
+            return span;
         }
 
         void ParseParagraph(HtmlNode node, Style style)
@@ -156,6 +257,20 @@ namespace Papyrus.HtmlParser
                 ConvertedBlocks.Add(_currentParagraph);
 
             _currentParagraph = new Paragraph();
+
+            var className = node.GetClassName();
+
+            if (!string.IsNullOrEmpty(className))
+            {
+                var cssStyle = _cssStyles.SafeGet(className);
+
+                if (cssStyle != default(Style))
+                {
+                    var newStyle = new Style(style);
+                    newStyle.RebaseOn(cssStyle);
+                    _currentParagraph.ApplyStyle(newStyle);
+                }
+            }
 
             foreach (var child in node.ChildNodes)
                 _currentParagraph.Inlines.SafeAdd(ParseNode(child, style));
@@ -198,10 +313,19 @@ namespace Papyrus.HtmlParser
             TextAlignment = style.TextAlignment;
         }
 
-        public double FontSize { get; set; } = 16;
-        public FontStyle FontStyle { get; set; } = FontStyle.Normal;
-        public FontWeight FontWeight { get; set; } = FontWeights.Normal;
-        public Color Foreground { get; set; } = Colors.Black;
-        public TextAlignment TextAlignment { get; set; } = TextAlignment.Left;
+        public void RebaseOn(Style style)
+        {
+            FontSize = style.FontSize ?? FontSize;
+            FontStyle = style.FontStyle ?? FontStyle;
+            FontWeight = style.FontWeight ?? FontWeight;
+            Foreground = style.Foreground ?? Foreground;
+            TextAlignment = style.TextAlignment ?? TextAlignment;
+        }
+
+        public double? FontSize { get; set; } = 16;
+        public FontStyle? FontStyle { get; set; } = Windows.UI.Text.FontStyle.Normal;
+        public FontWeight? FontWeight { get; set; } = FontWeights.Normal;
+        public Color? Foreground { get; set; } = Colors.Black;
+        public TextAlignment? TextAlignment { get; set; } = Windows.UI.Xaml.TextAlignment.Left;
     }
 }

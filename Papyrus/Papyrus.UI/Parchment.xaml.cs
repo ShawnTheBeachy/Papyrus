@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Windows.Storage;
 using Windows.UI;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
@@ -17,7 +19,7 @@ namespace Papyrus.UI
     public sealed partial class Parchment : UserControl
     {
         private SpineItem _currentSpineItem;
-        private Binding _paddingBinding, _lineHeightBinding, _indentationBinding, _foregroundBinding;
+        private Binding _paddingBinding, _lineHeightBinding, _indentationBinding, _foregroundBinding, _characterSpacingBinding;
 
         #region Dependency properties
         
@@ -86,6 +88,14 @@ namespace Papyrus.UI
                 Path = new PropertyPath("Padding"),
                 Mode = BindingMode.OneWay
             };
+            _characterSpacingBinding = new Binding
+            {
+                FallbackValue = CharacterSpacing,
+                TargetNullValue = CharacterSpacing,
+                Source = this,
+                Path = new PropertyPath("CharacterSpacing"),
+                Mode = BindingMode.OneWay
+            };
             _foregroundBinding = new Binding
             {
                 FallbackValue = new SolidColorBrush(Colors.Black),
@@ -119,8 +129,17 @@ namespace Papyrus.UI
             _currentSpineItem = Source.Spine.FirstOrDefault(a => a.IdRef == manifestItem.Key);
 
             var contents = await Source.GetContentsAsync(navPoint);
+            var stylesheetLocations = GetStylesheetLocations(contents, navPoint.ContentPath);
+            var css = string.Empty;
+
+            foreach (var location in stylesheetLocations)
+            {
+                var file = await Source.GetFileAsync(location);
+                css += $"\r{await FileIO.ReadTextAsync(file)}";
+            }
+
             var converter = new Converter();
-            converter.Convert(contents);
+            converter.Convert(contents, css);
             await BuildViewAsync(converter.ConvertedBlocks);
             IsBusy = false;
         }
@@ -130,10 +149,39 @@ namespace Papyrus.UI
             IsBusy = true;
             _currentSpineItem = spineItem;
             var contents = await Source.GetContentsAsync(spineItem);
+
+            var stylesheetLocations = GetStylesheetLocations(contents, Source.Manifest[spineItem.IdRef].ContentLocation);
+            var css = string.Empty;
+
+            foreach (var location in stylesheetLocations)
+            {
+                var file = await Source.GetFileAsync(location);
+                css += $"\r{await FileIO.ReadTextAsync(file)}";
+            }
+
             var converter = new Converter();
-            converter.Convert(contents);
+            converter.Convert(contents, css);
             await BuildViewAsync(converter.ConvertedBlocks);
             IsBusy = false;
+        }
+
+        private IEnumerable<string> GetStylesheetLocations(string html, string relativePath)
+        {
+            var stylesheetLocations = new List<string>();
+
+            var stylesheetsRegex = new Regex(@"<link.*rel=""stylesheet"".*>");
+            var hrefRegex = new Regex(@"href=""([^""]+)");
+            var stylesheetMatches = stylesheetsRegex.Matches(html).OfType<Match>();
+
+            foreach (var match in stylesheetMatches)
+            {
+                var href = hrefRegex.Match(match.Value).Groups.OfType<Group>().ElementAt(1);
+                var contentLocation = Path.GetFullPath(Source.RootPath.EnsureEnd("\\") + Path.GetDirectoryName(relativePath));
+                var stylesheetLocation = Path.GetFullPath(contentLocation.EnsureEnd("\\") + href);
+                stylesheetLocations.Add(stylesheetLocation);
+            }
+
+            return stylesheetLocations;
         }
 
         private async Task BuildViewAsync(IEnumerable<Block> blocks)
@@ -148,8 +196,10 @@ namespace Papyrus.UI
 
             var ContentTextBlock = new RichTextBlock
             {
-                IsTextSelectionEnabled = false
+                IsTextSelectionEnabled = false,
+                TextAlignment = TextAlignment.Justify
             };
+            ContentTextBlock.SetBinding(RichTextBlock.CharacterSpacingProperty, _characterSpacingBinding);
             ContentTextBlock.SetBinding(RichTextBlock.PaddingProperty, _paddingBinding);
             ContentTextBlock.SetBinding(RichTextBlock.LineHeightProperty, _lineHeightBinding);
             ContentTextBlock.SetBinding(RichTextBlock.TextIndentProperty, _indentationBinding);

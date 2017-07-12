@@ -107,7 +107,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Converter.cs" />
+    <Compile Include="CssHelpers.cs" />
     <Compile Include="Extensions\BlockExtensions.cs" />
+    <Compile Include="Extensions\DictionaryExtensions.cs" />
+    <Compile Include="Extensions\HtmlNodeExtensions.cs" />
     <Compile Include="Extensions\InlineCollectionExtensions.cs" />
     <Compile Include="Extensions\InlineExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

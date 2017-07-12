@@ -15,7 +15,7 @@ namespace Papyrus.HtmlParser.Extensions
 
                 catch
                 {
-                    collection.Add(new Run { Text = " " });
+                    return false;
                 }
             }
 
