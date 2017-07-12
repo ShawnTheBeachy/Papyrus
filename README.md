@@ -143,7 +143,7 @@ Properties and methods in the `ManifestItem` class.
 
 **MediaType (string):** The type of media to which this `ManifestItem` points.
 
-#### Metadata
+### Metadata
 
 Properties and methods in the `Metadata` class.
 
@@ -166,3 +166,49 @@ Properties and methods in the `Metadata` class.
 **Language (string):** A language code for the eBook.
 
 **Title (string):** The title of the eBook.
+
+### NavPoint
+
+Properties and methods in the `Metadata` class.
+
+#### Properties
+
+**ContentPath (string):** A relative path to the content to which this `NavPoint` points.
+
+**Id (string):** The identifier for this `NavPoint`.
+
+**Items (ObservableCollection\<NavPoint>):** Sub-items for this `NavPoint`.
+
+**Level (Int32):** The nesting level of this `NavPoint`.
+
+**PlayOrder (Int32):** The order in which this `NavPoint` should appear.
+
+**Text (string):** The text to display for this `NavPoint`.
+
+### Spine
+
+Properties in the `Spine` class.
+
+#### Properties
+
+**Toc (string):** The Id of the [ManifestItem](#manifestitem) which represents the table of contents for this `Spine`.
+
+### SpineItem
+
+Properties in the `SpineItem` class
+
+#### Properties
+
+**IdRef (string):** The Id of the [ManifestItem](#manifestitem) to which this `SpineItem` points.
+
+### TableOfContents
+
+Properties in the `TableOfContents` class
+
+#### Properties
+
+**FlatItems (IEnumerable\<[NavPoint](#navpoint)>):** A flattened list of the items in this `TableOfContents`.
+
+**Items (ObservableCollection\<[NavPoint](#navpoint)>):** The items in this `TableOfContents`.
+
+**Title (string):** The title of this `TableOfContents`.
