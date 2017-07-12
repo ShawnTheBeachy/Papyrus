@@ -45,7 +45,7 @@ var html = await eBook.GetContentsAsync(spineItem);
 
 #### Parsing the HTML
 
-Getting the CSS styles is optional, but will help to display the UI more closely to how it is displayed in HTML. You may use whatever method you wish to get the CSS content, now that you can parse the location of the stylesheets from the HTML. The EBook class does have an extension method which takes an absolute path to a file inside its folder and returns the file. E.g.  `Book.GetFileAsync("C:/Path/To/The/EBook/styles/styles.css");` I intend to build this functionality into Papyrus in the future. If you opt not to get the CSS, just pass an empty string to the parser.
+Getting the CSS styles is optional, but will help to display the UI more closely to how it is displayed in HTML. You may use whatever method you wish to get the CSS content, now that you can parse the location of the stylesheets from the HTML. The EBook class does have an extension method which takes an absolute path to a file inside its folder and returns the file. E.g.  `Book.GetFileAsync("C:/Path/To/The/EBook/styles/styles.css");` I intend to build the CSS loading functionality right into Papyrus in the future. If you opt not to get the CSS, just pass an empty string to the parser.
 
 ```c#
 
@@ -95,4 +95,20 @@ xmlns:papyrus="using:Papyrus.UI"
 
 ```
 
-You're all set! you should now be able to display your eBook's content. For more advanced scenarios, take a look at the available properties and methods below.
+You're all set! you should now be able to display your eBook's content. For more advanced scenarios, check out the available properties and methods below.
+
+## Available properties and methods
+
+[Papyrus](#papyrus)
+
+### Papyrus
+
+Components in the `Papyrus` library.
+
+#### EBook
+
+Properties and methods in the `EBook` class.
+
+##### Properties
+
+**ContentLocation:** A relative path to the `content.opf` file.
