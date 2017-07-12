@@ -107,7 +107,7 @@ You're all set! you should now be able to display your eBook's content. For more
 
 Components in the `Papyrus` library.
 
-#### EBook
+### EBook
 
 Properties and methods in the `EBook` class.
 
@@ -131,7 +131,7 @@ Properties and methods in the `EBook` class.
 
 **InitializeAsync():** Initializes the `EBook`, verifying the mimetype and loading the [Metadata](#metadata), `Manifest`, [Spine](#spine), [TableOfContents](#tableofcontents) and `Cover`.
 
-#### ManifestItem
+### ManifestItem
 
 Properties and methods in the `ManifestItem` class.
 
@@ -145,3 +145,24 @@ Properties and methods in the `ManifestItem` class.
 
 #### Metadata
 
+Properties and methods in the `Metadata` class.
+
+**AlternativeTitle (string):** An alternative name for the resource.
+
+**Available (DateTime):** Date that the resource became or will become available.
+
+**Audience (string):** A class of entity for whom the resource is intended or useful.
+
+**Contributor (string):** An entity responsible for making contributions to the resource.
+
+**Created (DateTime):** Date of creation of the resource.
+
+**Creator (string):** An entity primarily responsible for making the resource. This will be the author.
+
+**Date (DateTime):** Publication date.
+
+**Description (string):** A description of the eBook.
+
+**Language (string):** A language code for the eBook.
+
+**Title (string):** The title of the eBook.
