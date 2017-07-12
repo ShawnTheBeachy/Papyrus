@@ -169,7 +169,7 @@ Properties and methods in the `Metadata` class.
 
 ### NavPoint
 
-Properties and methods in the `Metadata` class.
+Properties and methods in the `NavPoint` class.
 
 #### Properties
 
@@ -187,11 +187,17 @@ Properties and methods in the `Metadata` class.
 
 ### Spine
 
-Properties in the `Spine` class.
+Properties and methods in the `Spine` class.
 
 #### Properties
 
 **Toc (string):** The Id of the [ManifestItem](#manifestitem) which represents the table of contents for this `Spine`.
+
+#### Methods
+
+**Next(SpineItem item):** An extension method which gets the next item in the spine. (`spine.Next(item)`)
+
+**Previous(SpineItem item):** An extension method which gets the previous item in the spine. (`spine.Previous(item)`)
 
 ### SpineItem
 
