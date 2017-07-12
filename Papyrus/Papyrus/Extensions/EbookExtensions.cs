@@ -24,9 +24,7 @@ namespace Papyrus
         /// <returns></returns>
         public static async Task<string> GetContentsAsync(this EBook ebook, ManifestItem manifestItem, bool embedImages = true)
         {
-            var fullContentPath = Path.GetFullPath(ebook._rootFolder.Path.EnsureEnd("\\") + ebook.ContentLocation);
-            var tocPath = Path.GetFullPath(Path.GetDirectoryName(fullContentPath).EnsureEnd("\\") + ebook.Manifest["ncx"].ContentLocation);
-            var filePath = Path.GetFullPath(Path.GetDirectoryName(tocPath).EnsureEnd("\\") + manifestItem.ContentLocation);
+            var filePath = Path.GetFullPath(ebook._rootFolder.Path.EnsureEnd("\\") + manifestItem.ContentLocation);
             var contentFile = await ebook._rootFolder.GetFileFromPathAsync(filePath.Substring(ebook._rootFolder.Path.Length));
             var contents = await FileIO.ReadTextAsync(contentFile);
             contents = WebUtility.HtmlDecode(contents);
@@ -53,16 +51,16 @@ namespace Papyrus
             return contents;
         }
 
-        public static async Task<string> GetContentsAsync(this EBook ebook, SpineItem spineItem)
+        public static async Task<string> GetContentsAsync(this EBook ebook, SpineItem spineItem, bool embedImages = true)
         {
             var manifestItem = ebook.Manifest[spineItem.IdRef];
-            return await ebook.GetContentsAsync(manifestItem);
+            return await ebook.GetContentsAsync(manifestItem, embedImages);
         }
 
-        public static async Task<string> GetContentsAsync(this EBook ebook, NavPoint navPoint)
+        public static async Task<string> GetContentsAsync(this EBook ebook, NavPoint navPoint, bool embedImages = true)
         {
-            var manifestItem = ebook.Manifest.FirstOrDefault(a => Path.GetFileName(a.Value.ContentLocation) == Path.GetFileName(navPoint.ContentPath)).Value;
-            return await ebook.GetContentsAsync(manifestItem);
+            var manifestItem = ebook.Manifest.FirstOrDefault(a => a.Value.ContentLocation == navPoint.ContentPath).Value;
+            return await ebook.GetContentsAsync(manifestItem, embedImages);
         }
 
         /// <summary>

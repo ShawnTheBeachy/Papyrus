@@ -1,4 +1,5 @@
-﻿using Papyrus.HtmlParser;
+﻿using Papyrus.Extensions;
+using Papyrus.HtmlParser;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -174,6 +175,9 @@ namespace Papyrus.UI
 
             foreach (var match in stylesheetMatches)
             {
+                if (!match.Value.Contains(@"type=""css"""))
+                    break;
+
                 var href = hrefRegex.Match(match.Value).Groups.OfType<Group>().ElementAt(1);
                 var contentLocation = Path.GetFullPath(Source.RootPath.EnsureEnd("\\") + Path.GetDirectoryName(relativePath));
                 var stylesheetLocation = Path.GetFullPath(contentLocation.EnsureEnd("\\") + href);
@@ -187,11 +191,10 @@ namespace Papyrus.UI
         {
             Provider.Clear();
 
-            var currentIndex = Source.Spine.IndexOf(_currentSpineItem);
-            var previousIndex = currentIndex - 1;
-            var nextIndex = currentIndex + 1;
+            var previousItem = Source.Spine.Previous(_currentSpineItem);
+            var nextItem = Source.Spine.Next(_currentSpineItem);
 
-            Provider.CreateFromBlocks(_converter.ConvertedBlocks, _bindings, previousIndex >= 0, nextIndex < Source.Spine.Count);
+            Provider.CreateFromBlocks(_converter.ConvertedBlocks.ToList(), _bindings, previousItem != null, nextItem != null);
         }
         
         private async void MainFlipView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -202,12 +205,11 @@ namespace Papyrus.UI
             if (MainFlipView.SelectedIndex == MainFlipView.Items.Count - 1)
             {
                 // We're on the last page.
-                var nextIndex = Source.Spine.IndexOf(_currentSpineItem) + 1;
                 
                 if (MainFlipView.SelectedItem is FlipViewItem)
                 {
                     IsBusy = true;
-                    await LoadContentAsync(Source.Spine[nextIndex]);
+                    await LoadContentAsync(Source.Spine.Next(_currentSpineItem));
                     BuildView();
                     MainFlipView.SelectedIndex = 1;
                     IsBusy = false;
@@ -223,7 +225,7 @@ namespace Papyrus.UI
                 {
                     // Load the previous spine item.
                     IsBusy = true;
-                    await LoadContentAsync(Source.Spine[previousIndex]);
+                    await LoadContentAsync(Source.Spine.Previous(_currentSpineItem));
                     BuildView();
                     MainFlipView.SelectedIndex = MainFlipView.Items.Count - 2;
                     IsBusy = false;

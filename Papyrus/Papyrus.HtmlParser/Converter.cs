@@ -43,6 +43,7 @@ namespace Papyrus.HtmlParser
         {
             _cssStyles.Clear();
             ConvertedBlocks.Clear();
+            _currentParagraph = new Paragraph();
 
             if (!string.IsNullOrWhiteSpace(css))
                 ParseCss(css);

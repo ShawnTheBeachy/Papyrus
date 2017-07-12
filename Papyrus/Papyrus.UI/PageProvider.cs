@@ -4,6 +4,8 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Documents;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Papyrus.UI
 {
@@ -11,7 +13,7 @@ namespace Papyrus.UI
     {
         private PageProviderBindings _bindings;
 
-        public void CreateFromBlocks(IEnumerable<Block> blocks, PageProviderBindings bindings, bool canGoBack, bool canGoForward)
+        public void CreateFromBlocks(List<Block> blocks, PageProviderBindings bindings, bool canGoBack, bool canGoForward)
         {
             _bindings = bindings;
 

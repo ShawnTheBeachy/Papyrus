@@ -2,7 +2,7 @@
 
 namespace Papyrus.Extensions
 {
-    internal static class SpineExtensions
+    public static class SpineExtensions
     {
         public static SpineItem Next(this Spine spine, SpineItem item)
         {
