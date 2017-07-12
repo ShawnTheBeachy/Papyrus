@@ -1,6 +1,7 @@
 ﻿using Papyrus.HtmlParser;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -18,8 +19,11 @@ namespace Papyrus.UI
 {
     public sealed partial class Parchment : UserControl
     {
+        public PageProvider Provider = new PageProvider();
         private SpineItem _currentSpineItem;
         private Binding _paddingBinding, _lineHeightBinding, _indentationBinding, _foregroundBinding, _characterSpacingBinding;
+        private PageProviderBindings _bindings = new PageProviderBindings();
+        private Converter _converter = new Converter();
 
         #region Dependency properties
         
@@ -117,14 +121,16 @@ namespace Papyrus.UI
                 FallbackValue = 24,
                 TargetNullValue = 24,
                 Source = this,
-                Path = new PropertyPath("TextIndent"),
+                Path = new PropertyPath("ParagraphIndentation"),
                 Mode = BindingMode.OneWay
             };
+            _bindings.LineHeightBinding = _lineHeightBinding;
+            _bindings.PaddingBinding = _paddingBinding;
+            _bindings.ParagraphIndentationBinding = _indentationBinding;
         }
 
         public async Task LoadContentAsync(NavPoint navPoint)
         {
-            IsBusy = true;
             var manifestItem = Source.Manifest.FirstOrDefault(a => Path.GetFileName(a.Value.ContentLocation) == Path.GetFileName(navPoint.ContentPath));
             _currentSpineItem = Source.Spine.FirstOrDefault(a => a.IdRef == manifestItem.Key);
 
@@ -137,16 +143,16 @@ namespace Papyrus.UI
                 var file = await Source.GetFileAsync(location);
                 css += $"\r{await FileIO.ReadTextAsync(file)}";
             }
-
-            var converter = new Converter();
-            converter.Convert(contents, css);
-            await BuildViewAsync(converter.ConvertedBlocks);
-            IsBusy = false;
+            
+            _converter.Convert(contents, css);
         }
 
         public async Task LoadContentAsync(SpineItem spineItem)
         {
-            IsBusy = true;
+#if DEBUG
+            Debug.WriteLine($"Loading spine item {spineItem.IdRef}.");            
+#endif
+
             _currentSpineItem = spineItem;
             var contents = await Source.GetContentsAsync(spineItem);
 
@@ -158,11 +164,11 @@ namespace Papyrus.UI
                 var file = await Source.GetFileAsync(location);
                 css += $"\r{await FileIO.ReadTextAsync(file)}";
             }
-
-            var converter = new Converter();
-            converter.Convert(contents, css);
-            await BuildViewAsync(converter.ConvertedBlocks);
-            IsBusy = false;
+            
+            _converter.Convert(contents, css);
+#if DEBUG
+            Debug.WriteLine($"Finished loading spine item {spineItem.IdRef}.");
+#endif
         }
 
         private IEnumerable<string> GetStylesheetLocations(string html, string relativePath)
@@ -184,125 +190,18 @@ namespace Papyrus.UI
             return stylesheetLocations;
         }
 
-        private async Task BuildViewAsync(IEnumerable<Block> blocks)
+        public void BuildView()
         {
-            MainFlipView.ItemsSource = null;
-            MainFlipView.Items.Clear();
+            Provider.Clear();
 
-            var previousIndex = Source.Spine.IndexOf(_currentSpineItem) - 1;
+            var currentIndex = Source.Spine.IndexOf(_currentSpineItem);
+            var previousIndex = currentIndex - 1;
+            var nextIndex = currentIndex + 1;
 
-            if (previousIndex >= 0)
-                MainFlipView.Items.Add(new FlipViewItem());
-
-            var ContentTextBlock = new RichTextBlock
-            {
-                IsTextSelectionEnabled = false,
-                TextAlignment = TextAlignment.Justify
-            };
-            ContentTextBlock.SetBinding(RichTextBlock.CharacterSpacingProperty, _characterSpacingBinding);
-            ContentTextBlock.SetBinding(RichTextBlock.PaddingProperty, _paddingBinding);
-            ContentTextBlock.SetBinding(RichTextBlock.LineHeightProperty, _lineHeightBinding);
-            ContentTextBlock.SetBinding(RichTextBlock.TextIndentProperty, _indentationBinding);
-            ContentTextBlock.SetBinding(RichTextBlock.ForegroundProperty, _foregroundBinding);
-
-            foreach (var block in blocks)
-                ContentTextBlock.Blocks.Add(block);
-
-            MainFlipView.Items.Add(ContentTextBlock);
-
-            if (MainFlipView.Items.FirstOrDefault() is FlipViewItem)
-                MainFlipView.SelectedIndex = 1;
-
-            await OverflowAsync(ContentTextBlock);
+            Provider.CreateFromBlocks(_converter.ConvertedBlocks, _bindings, previousIndex >= 0, nextIndex < Source.Spine.Count);
+            MainFlipView.SelectedIndex = 1;
         }
-
-        private async Task OverflowAsync(RichTextBlock rtb)
-        {
-            async Task Flow()
-            {
-                if (rtb.HasOverflowContent && rtb.OverflowContentTarget == null)
-                {
-                    var target = new RichTextBlockOverflow();
-                    target.SetBinding(RichTextBlockOverflow.PaddingProperty, _paddingBinding);
-                    rtb.OverflowContentTarget = target;
-                    await CoreWindow.GetForCurrentThread().Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                    {
-                        MainFlipView.Items.Add(target);
-                    });
-                    await OverflowAsync(target);
-                }
-
-                else if (!rtb.HasOverflowContent && rtb.OverflowContentTarget != null)
-                {
-                    await UnderflowAsync(rtb.OverflowContentTarget);
-                    await CoreWindow.GetForCurrentThread().Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                    {
-                        MainFlipView.Items.Remove(rtb.OverflowContentTarget);
-                    });
-                    rtb.OverflowContentTarget = null;
-                }
-            }
-
-            await Flow();
-
-            rtb.RegisterPropertyChangedCallback(RichTextBlock.HasOverflowContentProperty, async (DependencyObject sender, DependencyProperty prop) =>
-            {
-                await Flow();
-            });
-        }
-
-        private async Task OverflowAsync(RichTextBlockOverflow rtb)
-        {
-            async Task Flow()
-            {
-                if (rtb.HasOverflowContent && rtb.OverflowContentTarget == null)
-                {
-                    var target = new RichTextBlockOverflow();
-                    target.SetBinding(RichTextBlockOverflow.PaddingProperty, _paddingBinding);
-                    rtb.OverflowContentTarget = target;
-                    await CoreWindow.GetForCurrentThread().Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                    {
-                        MainFlipView.Items.Add(target);
-                    });
-                    await OverflowAsync(target);
-                }
-
-                else if (!rtb.HasOverflowContent && rtb.OverflowContentTarget != null)
-                {
-                    await UnderflowAsync(rtb.OverflowContentTarget);
-                    await CoreWindow.GetForCurrentThread().Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                    {
-                        MainFlipView.Items.Remove(rtb.OverflowContentTarget);
-                    });
-                    rtb.OverflowContentTarget = null;
-                }
-            }
-
-            await Flow();
-
-            rtb.RegisterPropertyChangedCallback(RichTextBlockOverflow.HasOverflowContentProperty, async (DependencyObject sender, DependencyProperty prop) =>
-            {
-                await Flow();
-            });
-        }
-
-        private async Task UnderflowAsync(RichTextBlockOverflow rtbo)
-        {
-            async Task Flow()
-            {
-                if (rtbo.OverflowContentTarget != null)
-                {
-                    await CoreWindow.GetForCurrentThread().Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                    {
-                        MainFlipView.Items.Remove(rtbo.OverflowContentTarget);
-                        rtbo.OverflowContentTarget = null;
-                    });
-                }
-            }
-
-            await Flow();
-        }
-
+        
         private async void MainFlipView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (IsBusy)
@@ -312,20 +211,13 @@ namespace Papyrus.UI
             {
                 // We're on the last page.
                 var nextIndex = Source.Spine.IndexOf(_currentSpineItem) + 1;
-
-                if (nextIndex > Source.Spine.Count - 1)
-                    return;
-
-                if (!(MainFlipView.SelectedItem is FlipViewItem))
+                
+                if (MainFlipView.SelectedItem is FlipViewItem)
                 {
-                    // Tell the FlipView it can go further.
-                    MainFlipView.Items.Add(new FlipViewItem());
-                }
-
-                else
-                {
-                    // Load the next spine item.
+                    IsBusy = true;
                     await LoadContentAsync(Source.Spine[nextIndex]);
+                    BuildView();
+                    IsBusy = false;
                 }
             }
 
@@ -333,21 +225,15 @@ namespace Papyrus.UI
             {
                 // We're on the first page.
                 var previousIndex = Source.Spine.IndexOf(_currentSpineItem) - 1;
-
-                if (previousIndex < 0)
-                    return;
-
-                if (!(MainFlipView.SelectedItem is FlipViewItem))
-                {
-                    // Tell the FlipView it can go further.
-                    MainFlipView.Items.Insert(0, new FlipViewItem());
-                }
-
-                else
+                
+                if (MainFlipView.SelectedItem is FlipViewItem)
                 {
                     // Load the previous spine item.
+                    IsBusy = true;
                     await LoadContentAsync(Source.Spine[previousIndex]);
-                    MainFlipView.SelectedItem = MainFlipView.Items.LastOrDefault();     // TODO: This get called before all pages have finished overflowing.
+                    BuildView();
+                    MainFlipView.SelectedItem = MainFlipView.Items.Where(a => !(a is FlipViewItem)).LastOrDefault();
+                    IsBusy = false;
                 }
             }
         }
