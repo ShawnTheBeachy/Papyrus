@@ -4,7 +4,7 @@ using System;
 namespace Papyrus
 {
     [JsonObject(MemberSerialization.OptIn)]
-    public class Metadata : BaseNotify
+    public class Metadata : PapyrusItem
     {
         #region AlternativeTitle
 
@@ -115,6 +115,14 @@ namespace Papyrus
         public string Description { get => _description; set => Set(ref _description, value); }
 
         #endregion Description
+
+        #region Id
+
+        private string _id = default(string);
+        [JsonProperty("id")]
+        public string Id { get => _id; set => Set(ref _id, value); }
+
+        #endregion Id
 
         #region Language
 

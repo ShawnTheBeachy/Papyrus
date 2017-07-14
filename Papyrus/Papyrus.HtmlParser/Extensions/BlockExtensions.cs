@@ -3,7 +3,7 @@ using Windows.UI.Xaml.Media;
 
 namespace Papyrus.HtmlParser.Extensions
 {
-    public static class BlockExtensions
+    internal static class BlockExtensions
     {
         public static void ApplyStyle(this Block block, Style style)
         {

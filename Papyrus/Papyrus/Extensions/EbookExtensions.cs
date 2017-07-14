@@ -186,6 +186,7 @@ namespace Papyrus
                 Creator = GetValue("creator"),
                 Date = GetValue("date") == null ? default(DateTime) : DateTime.Parse(GetValue("date")),
                 Description = GetValue("description"),
+                Id = GetValue("identifier"),
                 Language = GetValue("language"),
                 Title = GetValue("title")
             };

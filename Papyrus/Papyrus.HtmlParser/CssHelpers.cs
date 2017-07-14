@@ -4,7 +4,7 @@ using Windows.UI.Xaml;
 
 namespace Papyrus.HtmlParser
 {
-    public static class CssHelpers
+    internal static class CssHelpers
     {
         public static Style GetStyleFromCssProperties(Dictionary<string, string> props)
         {
@@ -53,6 +53,5 @@ namespace Papyrus.HtmlParser
                     return TextAlignment.Left;
             }
         }
-
     }
 }

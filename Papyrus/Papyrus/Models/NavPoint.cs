@@ -5,7 +5,7 @@ using Windows.Storage;
 namespace Papyrus
 {
     [JsonObject(MemberSerialization.OptIn)]
-    public class NavPoint : BaseNotify
+    public class NavPoint : PapyrusItem
     {
         #region ContentPath
 

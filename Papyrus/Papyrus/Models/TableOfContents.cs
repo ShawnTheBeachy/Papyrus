@@ -5,7 +5,7 @@ using System.Collections.Specialized;
 
 namespace Papyrus
 {
-    public class TableOfContents : BaseNotify
+    public class TableOfContents : PapyrusItem
     {
         #region FlatItems
 

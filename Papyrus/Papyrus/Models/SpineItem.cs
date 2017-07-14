@@ -1,6 +1,6 @@
 ﻿namespace Papyrus
 {
-    public class SpineItem : BaseNotify
+    public class SpineItem : PapyrusItem
     {
         #region IdRef
 

@@ -106,14 +106,16 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Converter.cs" />
+    <Compile Include="HtmlParser.cs" />
     <Compile Include="CssHelpers.cs" />
+    <Compile Include="CssParser.cs" />
     <Compile Include="Extensions\BlockExtensions.cs" />
     <Compile Include="Extensions\DictionaryExtensions.cs" />
     <Compile Include="Extensions\HtmlNodeExtensions.cs" />
     <Compile Include="Extensions\InlineCollectionExtensions.cs" />
     <Compile Include="Extensions\InlineExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Style.cs" />
     <EmbeddedResource Include="Properties\Papyrus.HtmlParser.rd.xml" />
   </ItemGroup>
   <ItemGroup>

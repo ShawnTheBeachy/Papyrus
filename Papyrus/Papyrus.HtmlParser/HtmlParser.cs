@@ -3,9 +3,7 @@ using Papyrus.HtmlParser.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.Storage;
@@ -19,9 +17,9 @@ using Windows.UI.Xaml.Media.Imaging;
 
 namespace Papyrus.HtmlParser
 {
-    public class Converter
+    public class HtmlParser
     {
-        private Dictionary<string, Style> _cssStyles = new Dictionary<string, Style>();
+        private CssParser _cssParser = new CssParser();
         private Dictionary<string, double> _headerFontSizes = new Dictionary<string, double>
         {
             ["h1"] = 36,
@@ -41,12 +39,12 @@ namespace Papyrus.HtmlParser
 
         public void Convert(string html, string css = null)
         {
-            _cssStyles.Clear();
+            _cssParser.Styles.Clear();
             ConvertedBlocks.Clear();
             _currentParagraph = new Paragraph();
 
             if (!string.IsNullOrWhiteSpace(css))
-                ParseCss(css);
+                _cssParser.Parse(css);
 
             var bodyIndex = html.IndexOf("<body");
 
@@ -64,30 +62,6 @@ namespace Papyrus.HtmlParser
 
             if (_currentParagraph != null)
                 ConvertedBlocks.Add(_currentParagraph);
-        }
-
-        private void ParseCss(string css)
-        {
-            var classesRegex = new Regex(@"^(\.[^{]*)([^}]*)", RegexOptions.Multiline);
-            var propertyRegex = new Regex(@"([a-z-]+):\s?([^;\r\n|\r|\n]+)");
-            var classMatches = classesRegex.Matches(css).OfType<Match>();
-
-            foreach (var match in classMatches)
-            {
-                var name = match.Groups.OfType<Group>().ElementAt(1).Value.Trim().TrimStart('.');
-                var valueGroup = match.Groups.OfType<Group>().ElementAt(2);
-                var propMatches = propertyRegex.Matches(match.Value).OfType<Match>();
-                var props = new Dictionary<string, string>();
-
-                foreach (var propMatch in propMatches)
-                {
-                    var groups = propMatch.Groups.OfType<Group>();
-                    props.Add(groups.ElementAt(1).Value, groups.ElementAt(2).Value);
-                }
-
-                var style = CssHelpers.GetStyleFromCssProperties(props);
-                _cssStyles.Add(name, style);
-            }
         }
 
         #region ParseMethods
@@ -146,14 +120,10 @@ namespace Papyrus.HtmlParser
         Bold ParseBold(HtmlNode node, Style style)
         {
             var bold = new Bold();
-            bold.ApplyStyle(style);
-            var boldStyle = new Style(style)
-            {
-                FontWeight = FontWeights.Bold
-            };
+            _cssParser.StyleElement(node, bold, style);
 
             foreach (var child in node.ChildNodes)
-                bold.Inlines.SafeAdd(ParseNode(child, boldStyle));
+                bold.Inlines.SafeAdd(ParseNode(child, style));
 
             return bold;
         }
@@ -161,7 +131,7 @@ namespace Papyrus.HtmlParser
         void ParseImage(HtmlNode node, Style style)
         {
             var container = new InlineUIContainer();
-            container.ApplyStyle(style);
+            _cssParser.StyleElement(node, container, style);
             var source = node.Attributes["src"]?.Value;
 
             if (source == null)
@@ -207,14 +177,10 @@ namespace Papyrus.HtmlParser
         Italic ParseItalic(HtmlNode node, Style style)
         {
             var italic = new Italic();
-            italic.ApplyStyle(style);
-            var italicStyle = new Style(style)
-            {
-                FontStyle = FontStyle.Italic
-            };
+            _cssParser.StyleElement(node, italic, style);
 
             foreach (var child in node.ChildNodes)
-                italic.Inlines.SafeAdd(ParseNode(child, italicStyle));
+                italic.Inlines.SafeAdd(ParseNode(child, style));
 
             return italic;
         }
@@ -222,7 +188,7 @@ namespace Papyrus.HtmlParser
         Span ParseLink(HtmlNode node, Style style)
         {
             var span = new Span();
-            span.ApplyStyle(new Style(style) { TextAlignment = TextAlignment.Center });
+            _cssParser.StyleElement(node, span, new Style(style) { TextAlignment = TextAlignment.Center });
 
             var url = node.Attributes["href"]?.Value;
             url = url == null || url.Contains("://") ? url : $"epub://{url}";
@@ -258,20 +224,7 @@ namespace Papyrus.HtmlParser
                 ConvertedBlocks.Add(_currentParagraph);
 
             _currentParagraph = new Paragraph();
-
-            var className = node.GetClassName();
-
-            if (!string.IsNullOrEmpty(className))
-            {
-                var cssStyle = _cssStyles.SafeGet(className);
-
-                if (cssStyle != default(Style))
-                {
-                    var newStyle = new Style(style);
-                    newStyle.RebaseOn(cssStyle);
-                    _currentParagraph.ApplyStyle(newStyle);
-                }
-            }
+            _cssParser.StyleElement(node, _currentParagraph, style);
 
             foreach (var child in node.ChildNodes)
                 _currentParagraph.Inlines.SafeAdd(ParseNode(child, style));
@@ -280,7 +233,7 @@ namespace Papyrus.HtmlParser
         Span ParseSpan(HtmlNode node, Style style)
         {
             var span = new Span();
-            span.ApplyStyle(style);
+            _cssParser.StyleElement(node, span, style);
 
             foreach (var child in node.ChildNodes)
                 span.Inlines.SafeAdd(ParseNode(child, style));
@@ -294,39 +247,10 @@ namespace Papyrus.HtmlParser
                 return null;
 
             var run = new Run { Text = Regex.Replace(node.InnerText, @"\s+", " ").Replace('\n', ' ') };
-            run.ApplyStyle(style);
+            _cssParser.StyleElement(node, run, style);
             return run;
         }
 
         #endregion ParseMethods
-    }
-
-    public class Style
-    {
-        public Style() { }
-
-        public Style(Style style)
-        {
-            FontSize = style.FontSize;
-            FontStyle = style.FontStyle;
-            FontWeight = style.FontWeight;
-            Foreground = style.Foreground;
-            TextAlignment = style.TextAlignment;
-        }
-
-        public void RebaseOn(Style style)
-        {
-            FontSize = style.FontSize ?? FontSize;
-            FontStyle = style.FontStyle ?? FontStyle;
-            FontWeight = style.FontWeight ?? FontWeight;
-            Foreground = style.Foreground ?? Foreground;
-            TextAlignment = style.TextAlignment ?? TextAlignment;
-        }
-
-        public double? FontSize { get; set; } = 16;
-        public FontStyle? FontStyle { get; set; } = Windows.UI.Text.FontStyle.Normal;
-        public FontWeight? FontWeight { get; set; } = FontWeights.Normal;
-        public Color? Foreground { get; set; } = Colors.Black;
-        public TextAlignment? TextAlignment { get; set; } = Windows.UI.Xaml.TextAlignment.Left;
     }
 }

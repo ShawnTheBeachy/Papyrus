@@ -3,7 +3,7 @@ using Windows.UI.Xaml.Media;
 
 namespace Papyrus.HtmlParser.Extensions
 {
-    public static class InlineExtensions
+    internal static class InlineExtensions
     {
         public static void ApplyStyle(this Inline inline, Style style)
         {

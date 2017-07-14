@@ -8,7 +8,7 @@ using Windows.UI.Xaml.Media;
 
 namespace Papyrus
 {
-    public class EBook : BaseNotify
+    public class EBook : PapyrusItem
     {
         internal StorageFolder _rootFolder;
 

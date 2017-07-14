@@ -1,6 +1,6 @@
 ﻿namespace Papyrus
 {
-    public class ManifestItem : BaseNotify
+    public class ManifestItem : PapyrusItem
     {
         #region ContentLocation
 

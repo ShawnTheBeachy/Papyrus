@@ -24,7 +24,7 @@ namespace Papyrus.UI
         private SpineItem _currentSpineItem;
         private Binding _paddingBinding, _lineHeightBinding, _indentationBinding, _foregroundBinding, _characterSpacingBinding;
         private PageProviderBindings _bindings = new PageProviderBindings();
-        private Converter _converter = new Converter();
+        private HtmlParser.HtmlParser _converter = new HtmlParser.HtmlParser();
 
         #region Dependency properties
         
@@ -175,7 +175,7 @@ namespace Papyrus.UI
 
             foreach (var match in stylesheetMatches)
             {
-                if (!match.Value.Contains(@"type=""css"""))
+                if (!match.Value.Contains(@"type=""text/css"""))
                     break;
 
                 var href = hrefRegex.Match(match.Value).Groups.OfType<Group>().ElementAt(1);

@@ -117,6 +117,7 @@
     <Compile Include="Models\ManifestItem.cs" />
     <Compile Include="Models\Metadata.cs" />
     <Compile Include="Models\NavPoint.cs" />
+    <Compile Include="Models\PapyrusItem.cs" />
     <Compile Include="Models\Spine.cs" />
     <Compile Include="Models\SpineItem.cs" />
     <Compile Include="Models\TableOfContents.cs" />
