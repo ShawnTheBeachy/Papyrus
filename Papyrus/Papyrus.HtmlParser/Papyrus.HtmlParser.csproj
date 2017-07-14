@@ -106,6 +106,7 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="CssOptions.cs" />
     <Compile Include="HtmlParser.cs" />
     <Compile Include="CssHelpers.cs" />
     <Compile Include="CssParser.cs" />
@@ -119,6 +120,9 @@
     <EmbeddedResource Include="Properties\Papyrus.HtmlParser.rd.xml" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CoreCompat.System.Drawing">
+      <Version>1.0.0-beta006</Version>
+    </PackageReference>
     <PackageReference Include="HtmlAgilityPack.NetCore">
       <Version>1.5.0.1</Version>
     </PackageReference>

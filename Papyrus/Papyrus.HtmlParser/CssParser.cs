@@ -11,7 +11,7 @@ namespace Papyrus.HtmlParser
     {
         public Dictionary<string, Style> Styles { get; } = new Dictionary<string, Style>();
 
-        public void Parse(string css)
+        public void Parse(string css, CssOptions cssOptions)
         {
             var classesRegex = new Regex(@"^(\.[^{]*)([^}]*)", RegexOptions.Multiline);
             var propertyRegex = new Regex(@"([a-z-]+):\s?([^;\r\n|\r|\n]+)");
@@ -30,7 +30,7 @@ namespace Papyrus.HtmlParser
                     props.Add(groups.ElementAt(1).Value, groups.ElementAt(2).Value);
                 }
 
-                var style = CssHelpers.GetStyleFromCssProperties(props);
+                var style = CssHelpers.GetStyleFromCssProperties(props, cssOptions);
                 Styles.Add(name.Trim(), style);
             }
         }

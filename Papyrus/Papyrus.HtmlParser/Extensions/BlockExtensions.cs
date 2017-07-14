@@ -11,7 +11,15 @@ namespace Papyrus.HtmlParser.Extensions
             block.FontStyle = style.FontStyle.Value;
             block.FontWeight = style.FontWeight.Value;
             block.Foreground = style.Foreground != null ? new SolidColorBrush(style.Foreground.Value) : null;
+
+            if (style.LineHeight != null)
+                block.LineHeight = style.LineHeight.Value;
+
             block.TextAlignment = style.TextAlignment.Value;
+            block.TextDecorations = style.TextDecoration.Value;
+
+            if (block is Paragraph paragraph)
+                paragraph.TextIndent = style.TextIndent.Value;
         }
     }
 }

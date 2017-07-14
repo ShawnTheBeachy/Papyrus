@@ -32,19 +32,22 @@ namespace Papyrus.HtmlParser
         private Paragraph _currentParagraph = new Paragraph();
         public ObservableCollection<Block> ConvertedBlocks { get; set; } = new ObservableCollection<Block>();
         
-        public async Task ConvertAsync(StorageFile file, string css = null)
+        public async Task ConvertAsync(StorageFile file, string css = null, CssOptions cssOptions = null)
         {
-            Convert(await FileIO.ReadTextAsync(file), css);
+            Convert(await FileIO.ReadTextAsync(file), css, cssOptions);
         }
 
-        public void Convert(string html, string css = null)
+        public void Convert(string html, string css = null, CssOptions cssOptions = null)
         {
+            if (cssOptions == null)
+                cssOptions = new CssOptions();
+
             _cssParser.Styles.Clear();
             ConvertedBlocks.Clear();
             _currentParagraph = new Paragraph();
 
             if (!string.IsNullOrWhiteSpace(css))
-                _cssParser.Parse(css);
+                _cssParser.Parse(css, cssOptions);
 
             var bodyIndex = html.IndexOf("<body");
 
@@ -188,7 +191,7 @@ namespace Papyrus.HtmlParser
         Span ParseLink(HtmlNode node, Style style)
         {
             var span = new Span();
-            _cssParser.StyleElement(node, span, new Style(style) { TextAlignment = TextAlignment.Center });
+            _cssParser.StyleElement(node, span, new Style(style) { TextAlignment = TextAlignment.Center, TextDecoration = TextDecorations.Underline });
 
             var url = node.Attributes["href"]?.Value;
             url = url == null || url.Contains("://") ? url : $"epub://{url}";
@@ -225,6 +228,9 @@ namespace Papyrus.HtmlParser
 
             _currentParagraph = new Paragraph();
             _cssParser.StyleElement(node, _currentParagraph, style);
+
+            if (_currentParagraph.TextAlignment == TextAlignment.Center)
+                _currentParagraph.TextIndent = 0;
 
             foreach (var child in node.ChildNodes)
                 _currentParagraph.Inlines.SafeAdd(ParseNode(child, style));

@@ -145,7 +145,7 @@ namespace Papyrus.UI
                 css += $"\r{await FileIO.ReadTextAsync(file)}";
             }
             
-            _converter.Convert(contents, css);
+            _converter.Convert(contents, css, new CssOptions { Foreground = false, LineHeight = false, TextIndent = false });
         }
 
         public async Task LoadContentAsync(SpineItem spineItem)
@@ -162,7 +162,7 @@ namespace Papyrus.UI
                 css += $"\r{await FileIO.ReadTextAsync(file)}";
             }
             
-            _converter.Convert(contents, css);
+            _converter.Convert(contents, css, new CssOptions { Foreground = false, LineHeight = false, TextIndent = false });
         }
 
         private IEnumerable<string> GetStylesheetLocations(string html, string relativePath)

@@ -11,6 +11,7 @@ namespace Papyrus.HtmlParser.Extensions
             inline.FontStyle = style.FontStyle.Value;
             inline.FontWeight = style.FontWeight.Value;
             inline.Foreground = style.Foreground != null ? new SolidColorBrush(style.Foreground.Value) : null;
+            inline.TextDecorations = style.TextDecoration.Value;
         }
     }
 }
