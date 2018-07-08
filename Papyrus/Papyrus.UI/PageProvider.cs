@@ -26,10 +26,12 @@ namespace Papyrus.UI
             baseBlock.SetBinding(RichTextBlock.PaddingProperty, _bindings.PaddingBinding);
             baseBlock.SetBinding(RichTextBlock.TextIndentProperty, _bindings.ParagraphIndentationBinding);
 
-            foreach (var block in blocks)
-                baseBlock.Blocks.Add(block);
+			foreach (var block in blocks)
+			{
+				baseBlock.Blocks.Add(block);
+			}
 
-            Add(baseBlock);
+			Add(baseBlock);
             baseBlock.UpdateLayout();
             Overflow(baseBlock);
 

@@ -1,8 +1,5 @@
-﻿using Newtonsoft.Json;
-using Papyrus.HtmlParser;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
@@ -14,7 +11,7 @@ using Windows.UI.Xaml.Navigation;
 
 namespace Papyrus.Demo
 {
-    public sealed partial class MainPage : Page
+	public sealed partial class MainPage : Page
     {
         #region EBooks
 

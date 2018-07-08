@@ -1,23 +1,20 @@
 ﻿using Papyrus.HtmlParser;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.UI;
-using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Documents;
 using Windows.UI.Xaml.Media;
 
 namespace Papyrus.UI
 {
-    public sealed partial class Parchment : UserControl
+	public sealed partial class Parchment : UserControl
     {
         public PageProvider Provider = new PageProvider();
         private SpineItem _currentSpineItem;
@@ -133,36 +130,31 @@ namespace Papyrus.UI
         {
             var manifestItem = Source.Manifest.FirstOrDefault(a => Path.GetFileName(a.Value.ContentLocation) == Path.GetFileName(navPoint.ContentPath));
             _currentSpineItem = Source.Spine.FirstOrDefault(a => a.IdRef == manifestItem.Key);
-
             var contents = await Source.GetContentsAsync(navPoint);
             var stylesheetLocations = GetStylesheetLocations(contents, navPoint.ContentPath);
-            var css = string.Empty;
-
-            foreach (var location in stylesheetLocations)
-            {
-                var file = await Source.GetFileAsync(location);
-                css += $"\r{await FileIO.ReadTextAsync(file)}";
-            }
-            
-            _converter.Convert(contents, css);
+			await LoadContentAsync(contents, stylesheetLocations);
         }
 
         public async Task LoadContentAsync(SpineItem spineItem)
         {
             _currentSpineItem = spineItem;
-            var contents = await Source.GetContentsAsync(spineItem);
-
-            var stylesheetLocations = GetStylesheetLocations(contents, Source.Manifest[spineItem.IdRef].ContentLocation);
-            var css = string.Empty;
-
-            foreach (var location in stylesheetLocations)
-            {
-                var file = await Source.GetFileAsync(location);
-                css += $"\r{await FileIO.ReadTextAsync(file)}";
-            }
-            
-            _converter.Convert(contents, css);
+			var contents = await Source.GetContentsAsync(spineItem);
+			var stylesheetLocations = GetStylesheetLocations(contents, Source.Manifest[spineItem.IdRef].ContentLocation);
+			await LoadContentAsync(contents, stylesheetLocations);
         }
+
+		private async Task LoadContentAsync(string contents, IEnumerable<string> stylesheetLocations)
+		{
+			var css = string.Empty;
+
+			foreach (var location in stylesheetLocations)
+			{
+				var file = await Source.GetFileAsync(location);
+				css += $"\r{await FileIO.ReadTextAsync(file)}";
+			}
+
+			_converter.Convert(contents, css);
+		}
 
         private IEnumerable<string> GetStylesheetLocations(string html, string relativePath)
         {
@@ -172,19 +164,32 @@ namespace Papyrus.UI
             var hrefRegex = new Regex(@"href=""([^""]+)");
             var stylesheetMatches = stylesheetsRegex.Matches(html).OfType<Match>();
 
-            foreach (var match in stylesheetMatches)
-            {
-                var href = hrefRegex.Match(match.Value).Groups.OfType<Group>().ElementAt(1);
-                var contentLocation = Path.GetFullPath(Source.RootPath.EnsureEnd("\\") + Path.GetDirectoryName(relativePath));
-                var stylesheetLocation = Path.GetFullPath(contentLocation.EnsureEnd("\\") + href);
-                stylesheetLocations.Add(stylesheetLocation);
-            }
+			foreach (var match in stylesheetMatches)
+			{
+				var href = hrefRegex.Match(match.Value).Groups.OfType<Group>().ElementAt(1);
+				var contentLocation = Path.GetFullPath(Source.RootPath.EnsureEnd("\\") + Path.GetDirectoryName(relativePath));
+				var stylesheetLocation = Path.GetFullPath(contentLocation.EnsureEnd("\\") + href);
+
+				if (File.Exists(stylesheetLocation))
+				{
+					stylesheetLocations.Add(stylesheetLocation);
+				}
+			}
 
             return stylesheetLocations;
         }
 
         public void BuildView()
         {
+			foreach (var item in Provider)
+			{
+				if (item is RichTextBlock rtb)
+				{
+					rtb.Blocks.Clear();
+					rtb = null;
+				}
+			}
+
             Provider.Clear();
 
             var currentIndex = Source.Spine.IndexOf(_currentSpineItem);

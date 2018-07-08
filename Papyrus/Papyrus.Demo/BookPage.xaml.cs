@@ -1,15 +1,10 @@
-﻿using Papyrus.HtmlParser;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using Windows.UI.Xaml;
+﻿using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 namespace Papyrus.Demo
 {
-    public sealed partial class BookPage : Page
+	public sealed partial class BookPage : Page
     {
         #region EBook
 
@@ -35,8 +30,10 @@ namespace Papyrus.Demo
             EBook = e.Parameter as EBook;
         }
 
-        private void TableOfContentsButton_Click(object sender, RoutedEventArgs e) =>
-            MainSplitView.IsPaneOpen = !MainSplitView.IsPaneOpen;
+		private void TableOfContentsButton_Click(object sender, RoutedEventArgs e)
+		{
+			MainSplitView.IsPaneOpen = !MainSplitView.IsPaneOpen;
+		}
         
         private void LibraryButton_Click(object sender, RoutedEventArgs e)
         {

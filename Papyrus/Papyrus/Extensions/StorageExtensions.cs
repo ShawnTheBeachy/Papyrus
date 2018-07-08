@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage;
@@ -17,19 +18,27 @@ namespace Papyrus
 
             IStorageItem file;
 
-            if (pathParts.Last().Contains("#"))
-            {
-                file = await folder.TryGetItemAsync(pathParts.Last().Split('#').FirstOrDefault());
+			if (pathParts.Last().Contains("#"))
+			{
+				file = await folder.TryGetItemAsync(pathParts.Last().Split('#').FirstOrDefault());
 
-                if (file == null)
-                    file = await folder.TryGetItemAsync(pathParts.Last());
+				if (file == null)
+					file = await folder.TryGetItemAsync(pathParts.Last());
 
-                if (file == null)
-                    throw new Exception("Couldn't find an appropriate file.");
-            }
+				if (file == null)
+					Debug.WriteLine($"Failed to find file at location {path}");
+			}
 
-            else
-                file = await folder.GetFileAsync(pathParts.Last());
+			else
+			{
+				file = await folder.TryGetItemAsync(pathParts.Last());
+
+				if (file == null)
+					file = await folder.TryGetItemAsync(pathParts.Last());
+
+				if (file == null)
+					Debug.WriteLine($"Failed to find file at location {path}");
+			}
 
             return file as StorageFile;
         }

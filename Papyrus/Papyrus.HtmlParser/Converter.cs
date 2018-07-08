@@ -3,9 +3,7 @@ using Papyrus.HtmlParser.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.Storage;
@@ -19,7 +17,7 @@ using Windows.UI.Xaml.Media.Imaging;
 
 namespace Papyrus.HtmlParser
 {
-    public class Converter
+	public class Converter
     {
         private Dictionary<string, Style> _cssStyles = new Dictionary<string, Style>();
         private Dictionary<string, double> _headerFontSizes = new Dictionary<string, double>
