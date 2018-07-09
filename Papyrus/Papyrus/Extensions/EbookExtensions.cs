@@ -297,7 +297,7 @@ namespace Papyrus
             if (mimetypeFile == null)                                           // Make sure file exists.
                 return false;
 
-            var fileContents = await FileIO.ReadTextAsync(mimetypeFile as StorageFile);
+            var fileContents = (await FileIO.ReadTextAsync(mimetypeFile as StorageFile)).Trim(' ', '\n', '\r', '\t');
 
             if (!VerifyMimetypeString(fileContents))                         // Make sure file contents are correct.
                 return false;
