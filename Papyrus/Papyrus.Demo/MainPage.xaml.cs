@@ -45,8 +45,8 @@ namespace Papyrus.Demo
             if (file != null)
             {
                 var epubFolder = await ExtractZipAsync(file);
-                var eBook = new EBook(epubFolder);
-                await eBook.InitializeAsync();
+                var eBook = new EBook(epubFolder.Path);
+                eBook.Initialize();
                 EBooks.Add(eBook);
             }
         }
@@ -74,8 +74,8 @@ namespace Papyrus.Demo
 
             foreach (var epubFolder in epubFolders)
             {
-                var eBook = new EBook(epubFolder);
-                await eBook.InitializeAsync();
+                var eBook = new EBook(epubFolder.Path);
+				eBook.Initialize();
                 EBooks.Add(eBook);
             }
         }

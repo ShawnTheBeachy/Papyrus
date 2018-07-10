@@ -21,12 +21,12 @@
                   RelativePanel.AlignRightWithPanel="True"
                   RelativePanel.AlignTopWithPanel="True"
                   SelectionChanged="MainFlipView_SelectionChanged">
-            <FlipView.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </FlipView.ItemsPanel>
-        </FlipView>
+			<FlipView.ItemsPanel>
+				<ItemsPanelTemplate>
+					<StackPanel Orientation="Horizontal" />
+				</ItemsPanelTemplate>
+			</FlipView.ItemsPanel>
+		</FlipView>
         <ProgressRing Height="24"
                       IsActive="{x:Bind IsBusy, Mode=OneWay}"
                       RelativePanel.AlignHorizontalCenterWithPanel="True"

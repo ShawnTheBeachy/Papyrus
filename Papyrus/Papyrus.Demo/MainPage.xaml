@@ -29,7 +29,7 @@
                                RelativePanel.AlignLeftWithPanel="True"
                                RelativePanel.AlignRightWithPanel="True"
                                RelativePanel.AlignTopWithPanel="True"
-                               Source="{x:Bind Cover, Mode=OneWay}"
+                               Source="{x:Bind CoverLocation, Mode=OneWay}"
                                Stretch="UniformToFill"
                                VerticalAlignment="Center" />
                         <TextBlock x:Name="Title"

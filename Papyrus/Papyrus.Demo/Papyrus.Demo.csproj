@@ -12,7 +12,7 @@
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.17134.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.15063.0</TargetPlatformMinVersion>
+    <TargetPlatformMinVersion>10.0.17134.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -140,21 +140,21 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
-      <Version>5.2.3</Version>
+      <Version>6.1.5</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Papyrus.HtmlParser\Papyrus.HtmlParser.csproj">
-      <Project>{B14BD7C5-CC0D-468E-8AC4-F3F6E8E84382}</Project>
-      <Name>Papyrus.HtmlParser</Name>
+    <ProjectReference Include="..\Papyrus.Core\Papyrus.Core.csproj">
+      <Project>{c4188a7b-413a-41c8-a5b9-d0b97665bca0}</Project>
+      <Name>Papyrus.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\Papyrus.UI\Papyrus.UI.csproj">
       <Project>{0f312ea9-696f-4bea-968d-de6ae88cff34}</Project>
       <Name>Papyrus.UI</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Papyrus\Papyrus.csproj">
-      <Project>{c1f475d6-dad4-4738-961b-12c42c14d90e}</Project>
-      <Name>Papyrus</Name>
+    <ProjectReference Include="..\Papyrus.UWP\Papyrus.UWP.csproj">
+      <Project>{7ab6255d-404c-43db-94cc-82478d099ebd}</Project>
+      <Name>Papyrus.UWP</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

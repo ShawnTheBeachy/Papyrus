@@ -28,6 +28,7 @@ namespace Papyrus.Demo
         {
             base.OnNavigatedTo(e);
             EBook = e.Parameter as EBook;
+			EBook.TableOfContents = EBook.GetTableOfContents();
         }
 
 		private void TableOfContentsButton_Click(object sender, RoutedEventArgs e)

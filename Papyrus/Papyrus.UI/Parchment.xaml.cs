@@ -1,15 +1,14 @@
-﻿using Papyrus.HtmlParser;
-using System;
+﻿using Papyrus.UWP.Parsers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Windows.Storage;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Data;
+using Windows.UI.Xaml.Documents;
 using Windows.UI.Xaml.Media;
 
 namespace Papyrus.UI
@@ -20,7 +19,7 @@ namespace Papyrus.UI
         private SpineItem _currentSpineItem;
         private Binding _paddingBinding, _lineHeightBinding, _indentationBinding, _foregroundBinding, _characterSpacingBinding;
         private PageProviderBindings _bindings = new PageProviderBindings();
-        private Converter _converter = new Converter();
+        private HtmlParser _converter = new HtmlParser();
 
         #region Dependency properties
         
@@ -128,32 +127,29 @@ namespace Papyrus.UI
 
         public async Task LoadContentAsync(NavPoint navPoint)
         {
-            var manifestItem = Source.Manifest.FirstOrDefault(a => Path.GetFileName(a.Value.ContentLocation) == Path.GetFileName(navPoint.ContentPath));
+			var fileName = Path.GetFileName(navPoint.ContentPath);
+            var manifestItem = Source.Manifest.FirstOrDefault(a =>
+			{
+				var itemFileName = Path.GetFileName(a.Value.ContentLocation);
+				return itemFileName == fileName;
+			});
             _currentSpineItem = Source.Spine.FirstOrDefault(a => a.IdRef == manifestItem.Key);
-            var contents = await Source.GetContentsAsync(navPoint);
-            var stylesheetLocations = GetStylesheetLocations(contents, navPoint.ContentPath);
-			await LoadContentAsync(contents, stylesheetLocations);
+            var contents = Source.GetContents(navPoint, true, true);
+            // var stylesheetLocations = GetStylesheetLocations(contents, navPoint.ContentPath);
+			await LoadContentAsync(contents, new string[0]);
         }
 
         public async Task LoadContentAsync(SpineItem spineItem)
         {
             _currentSpineItem = spineItem;
-			var contents = await Source.GetContentsAsync(spineItem);
-			var stylesheetLocations = GetStylesheetLocations(contents, Source.Manifest[spineItem.IdRef].ContentLocation);
-			await LoadContentAsync(contents, stylesheetLocations);
+			var contents = Source.GetContents(spineItem, true, true);
+			// var stylesheetLocations = GetStylesheetLocations(contents, Source.Manifest[spineItem.IdRef].ContentLocation);
+			await LoadContentAsync(contents, new string[0]);
         }
 
 		private async Task LoadContentAsync(string contents, IEnumerable<string> stylesheetLocations)
 		{
-			var css = string.Empty;
-
-			foreach (var location in stylesheetLocations)
-			{
-				var file = await Source.GetFileAsync(location);
-				css += $"\r{await FileIO.ReadTextAsync(file)}";
-			}
-
-			_converter.Convert(contents, css);
+			_converter.Parse(contents, false);
 		}
 
         private IEnumerable<string> GetStylesheetLocations(string html, string relativePath)
@@ -167,7 +163,7 @@ namespace Papyrus.UI
 			foreach (var match in stylesheetMatches)
 			{
 				var href = hrefRegex.Match(match.Value).Groups.OfType<Group>().ElementAt(1);
-				var contentLocation = Path.GetFullPath(Source.RootPath.EnsureEnd("\\") + Path.GetDirectoryName(relativePath));
+				var contentLocation = Path.GetFullPath(Source.BaseDirectory.EnsureEnd("\\") + Path.GetDirectoryName(relativePath));
 				var stylesheetLocation = Path.GetFullPath(contentLocation.EnsureEnd("\\") + href);
 
 				if (File.Exists(stylesheetLocation))
@@ -196,7 +192,7 @@ namespace Papyrus.UI
             var previousIndex = currentIndex - 1;
             var nextIndex = currentIndex + 1;
 
-            Provider.CreateFromBlocks(_converter.ConvertedBlocks, _bindings, previousIndex >= 0, nextIndex < Source.Spine.Count);
+            Provider.CreateFromBlocks(_converter.GetBlocks(), _bindings, previousIndex >= 0, nextIndex < Source.Spine.Count);
         }
         
         private async void MainFlipView_SelectionChanged(object sender, SelectionChangedEventArgs e)

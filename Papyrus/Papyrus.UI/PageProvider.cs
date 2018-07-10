@@ -25,6 +25,7 @@ namespace Papyrus.UI
             baseBlock.SetBinding(RichTextBlock.LineHeightProperty, _bindings.LineHeightBinding);
             baseBlock.SetBinding(RichTextBlock.PaddingProperty, _bindings.PaddingBinding);
             baseBlock.SetBinding(RichTextBlock.TextIndentProperty, _bindings.ParagraphIndentationBinding);
+			baseBlock.MaxWidth = 800;
 
 			foreach (var block in blocks)
 			{
@@ -46,7 +47,10 @@ namespace Papyrus.UI
                 if (rtb.HasOverflowContent && rtb.OverflowContentTarget == null)
                 {
                     var index = IndexOf(rtb);
-                    var target = new RichTextBlockOverflow();
+					var target = new RichTextBlockOverflow
+					{
+						MaxWidth = 800
+					};
                     target.SetBinding(RichTextBlockOverflow.PaddingProperty, _bindings.PaddingBinding);
                     rtb.OverflowContentTarget = target;
                     Insert(index + 1, target);
@@ -77,7 +81,10 @@ namespace Papyrus.UI
                 if (rtbo.HasOverflowContent && rtbo.OverflowContentTarget == null)
                 {
                     var index = IndexOf(rtbo);
-                    var target = new RichTextBlockOverflow();
+					var target = new RichTextBlockOverflow
+					{
+						MaxWidth = 800
+					};
                     target.SetBinding(RichTextBlockOverflow.PaddingProperty, _bindings.PaddingBinding);
                     rtbo.OverflowContentTarget = target;
                     Insert(index + 1, rtbo.OverflowContentTarget);
